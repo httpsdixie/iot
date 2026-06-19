@@ -242,7 +242,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     final candidates = [
       'localhost',
-      '10.0.2.2',      // Android Emulator host loopback
+      '10.0.2.2', // Android Emulator host loopback
       '192.168.137.1', // Windows Hotspot
     ];
 
@@ -252,13 +252,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
     for (final ip in testIps) {
       try {
         final testUrl = "http://$ip:54321/rest/v1/sensor_readings?limit=1";
-        final response = await http.get(
-          Uri.parse(testUrl),
-          headers: {
-            'apikey': supabaseKey,
-            'Authorization': 'Bearer $supabaseKey',
-          },
-        ).timeout(const Duration(seconds: 2));
+        final response = await http
+            .get(
+              Uri.parse(testUrl),
+              headers: {
+                'apikey': supabaseKey,
+                'Authorization': 'Bearer $supabaseKey',
+              },
+            )
+            .timeout(const Duration(seconds: 2));
 
         if (response.statusCode == 200 ||
             response.statusCode == 401 ||
@@ -291,7 +293,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
       decoration: BoxDecoration(
         color: const Color(0xFF451A1A), // Sleek, dark red background
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.redAccent.withOpacity(0.5), width: 1.5),
+        border: Border.all(
+          color: Colors.redAccent.withOpacity(0.5),
+          width: 1.5,
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.2),
@@ -347,7 +352,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         backgroundColor: Colors.redAccent,
                         foregroundColor: Colors.white,
                         elevation: 0,
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 8,
+                        ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
@@ -355,7 +363,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       icon: const Icon(Icons.settings_rounded, size: 14),
                       label: const Text(
                         'Change Settings',
-                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       onPressed: _showSettingsDialog,
                     ),
@@ -364,7 +375,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       style: OutlinedButton.styleFrom(
                         foregroundColor: Colors.redAccent,
                         side: const BorderSide(color: Colors.redAccent),
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 8,
+                        ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
@@ -372,7 +386,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       icon: const Icon(Icons.refresh_rounded, size: 14),
                       label: const Text(
                         'Retry',
-                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       onPressed: fetchData,
                     ),
@@ -487,7 +504,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
       builder: (BuildContext context) {
         return StatefulBuilder(
           builder: (context, setDialogState) {
-            final dialogTheme = isDarkMode ? ThemeData.dark() : ThemeData.light();
+            final dialogTheme = isDarkMode
+                ? ThemeData.dark()
+                : ThemeData.light();
             return Theme(
               data: dialogTheme.copyWith(
                 dialogTheme: DialogThemeData(
@@ -499,7 +518,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
               child: AlertDialog(
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(24),
-                  side: BorderSide(color: violetThemeColor.withOpacity(0.3), width: 1),
+                  side: BorderSide(
+                    color: violetThemeColor.withOpacity(0.3),
+                    width: 1,
+                  ),
                 ),
                 title: Row(
                   children: [
@@ -534,16 +556,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: isDarkMode ? const Color(0xFF202227) : const Color(0xFFF3F4F6),
+                            color: isDarkMode
+                                ? const Color(0xFF202227)
+                                : const Color(0xFFF3F4F6),
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: violetThemeColor.withOpacity(0.2)),
+                            border: Border.all(
+                              color: violetThemeColor.withOpacity(0.2),
+                            ),
                           ),
                           child: Text(
                             'Configure your dashboard experience, map physical nodes, and tweak the appearance of the interface below.',
                             style: TextStyle(
                               fontSize: 12,
                               height: 1.4,
-                              color: isDarkMode ? Colors.white70 : Colors.black87,
+                              color: isDarkMode
+                                  ? Colors.white70
+                                  : Colors.black87,
                             ),
                           ),
                         ),
@@ -567,7 +595,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             children: [
                               Row(
                                 children: [
-                                  Icon(Icons.hub_rounded, size: 16, color: violetThemeColor),
+                                  Icon(
+                                    Icons.hub_rounded,
+                                    size: 16,
+                                    color: violetThemeColor,
+                                  ),
                                   const SizedBox(width: 8),
                                   const Text(
                                     'Server IP Address',
@@ -588,10 +620,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                       : const Color(0xFFF3F4F6),
                                   hintText: 'e.g., localhost or 192.168.1.10',
                                   hintStyle: TextStyle(
-                                    color: isDarkMode ? Colors.white30 : Colors.black38,
+                                    color: isDarkMode
+                                        ? Colors.white30
+                                        : Colors.black38,
                                     fontSize: 13,
                                   ),
-                                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 14,
+                                  ),
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(12),
                                     borderSide: BorderSide.none,
@@ -636,13 +673,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
                   ),
                 ),
-                actionsPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                actionsPadding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 16,
+                ),
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.of(context).pop(),
                     child: Text(
                       'Cancel',
-                      style: TextStyle(color: isDarkMode ? Colors.white54 : Colors.black54),
+                      style: TextStyle(
+                        color: isDarkMode ? Colors.white54 : Colors.black54,
+                      ),
                     ),
                   ),
                   ElevatedButton.icon(
@@ -650,12 +692,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       backgroundColor: violetThemeColor,
                       foregroundColor: Colors.white,
                       elevation: 0,
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 12,
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    icon: const Icon(Icons.check_circle_outline_rounded, size: 18),
+                    icon: const Icon(
+                      Icons.check_circle_outline_rounded,
+                      size: 18,
+                    ),
                     label: const Text(
                       'Save & Apply',
                       style: TextStyle(fontWeight: FontWeight.bold),
@@ -738,19 +786,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       icon: Icons.spa_rounded,
                       iconColor: const Color(0xFFFC3D73),
                       title: 'Sensor 1 - Blossom',
-                      description: 'Responsible for monitoring $r1RoomName. Color coded pink.',
+                      description:
+                          'Responsible for monitoring $r1RoomName. Color coded pink.',
                     ),
                     _buildHelpSpecItem(
                       icon: Icons.bubble_chart_rounded,
                       iconColor: const Color(0xFF349DFB),
                       title: 'Sensor 2 - Bubbles',
-                      description: 'Responsible for monitoring $r2RoomName. Color coded blue.',
+                      description:
+                          'Responsible for monitoring $r2RoomName. Color coded blue.',
                     ),
                     _buildHelpSpecItem(
                       icon: Icons.eco_rounded,
                       iconColor: const Color(0xFF38C124),
                       title: 'Sensor 3 - Buttercup',
-                      description: 'Responsible for monitoring $r3RoomName. Color coded green.',
+                      description:
+                          'Responsible for monitoring $r3RoomName. Color coded green.',
                     ),
                     const Divider(height: 24, thickness: 1),
                     Text(
@@ -767,13 +818,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       icon: Icons.thermostat_rounded,
                       iconColor: Colors.orangeAccent,
                       title: 'Temperature Thresholds',
-                      description: 'Optimal ranges are between 18.0°C and 30.0°C. Values above 30.0°C trigger warnings as too hot. Values below 18.0°C trigger warnings as too cold.',
+                      description:
+                          'Optimal ranges are between 18.0°C and 30.0°C. Values above 30.0°C trigger warnings as too hot. Values below 18.0°C trigger warnings as too cold.',
                     ),
                     _buildHelpSpecItem(
                       icon: Icons.water_drop_rounded,
                       iconColor: Colors.blueAccent,
                       title: 'Humidity Thresholds',
-                      description: 'Optimal humidity level is between 35% and 70%. Values above 70% represent excessive dampness. Values below 35% represent excessive dryness.',
+                      description:
+                          'Optimal humidity level is between 35% and 70%. Values above 70% represent excessive dampness. Values below 35% represent excessive dryness.',
                     ),
                   ],
                 ),
@@ -898,7 +951,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       fillColor: isDarkMode
                           ? const Color(0xFF202227)
                           : const Color(0xFFF3F4F6),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 14,
+                      ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide.none,
@@ -933,11 +989,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
           appBar: isMobile
               ? AppBar(
                   toolbarHeight: 70,
-                  backgroundColor: isDarkMode ? const Color(0xFF13151A) : Colors.white,
+                  backgroundColor: isDarkMode
+                      ? const Color(0xFF13151A)
+                      : Colors.white,
                   elevation: 0,
                   shape: Border(
                     bottom: BorderSide(
-                      color: isDarkMode ? const Color(0xFF1E222B) : const Color(0xFFE5E7EB),
+                      color: isDarkMode
+                          ? const Color(0xFF1E222B)
+                          : const Color(0xFFE5E7EB),
                       width: 1,
                     ),
                   ),
@@ -986,7 +1046,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             Text(
                               'by MADJIC Corp',
                               style: TextStyle(
-                                fontSize: 9, 
+                                fontSize: 9,
                                 color: subtextColor,
                               ),
                               maxLines: 1,
@@ -1009,7 +1069,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     IconButton(
                       tooltip: isDarkMode ? 'Light Mode' : 'Dark Mode',
                       icon: Icon(
-                        isDarkMode ? Icons.wb_sunny_rounded : Icons.dark_mode_rounded,
+                        isDarkMode
+                            ? Icons.wb_sunny_rounded
+                            : Icons.dark_mode_rounded,
                         color: isDarkMode ? Colors.amber : Colors.blueGrey[700],
                       ),
                       onPressed: _toggleTheme,
@@ -1035,12 +1097,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       Expanded(
                         child: isLoading
                             ? Center(
-                                child: CircularProgressIndicator(color: violetThemeColor),
+                                child: CircularProgressIndicator(
+                                  color: violetThemeColor,
+                                ),
                               )
                             : RefreshIndicator(
                                 onRefresh: fetchData,
                                 color: violetThemeColor,
-                                child: (currentTab == "Dashboard" || currentTab == "Temperature Only" || currentTab == "Humidity Only")
+                                child:
+                                    (currentTab == "Dashboard" ||
+                                        currentTab == "Temperature Only" ||
+                                        currentTab == "Humidity Only")
                                     ? _buildDashboardView(
                                         cardBgColor,
                                         textColor,
@@ -1069,20 +1136,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               child: isLoading
                                   ? Center(
                                       child: CircularProgressIndicator(
-                                          color: violetThemeColor),
+                                        color: violetThemeColor,
+                                      ),
                                     )
-                                  : (currentTab == "Dashboard" || currentTab == "Temperature Only" || currentTab == "Humidity Only")
-                                      ? _buildDashboardView(
-                                          cardBgColor,
-                                          textColor,
-                                          subtextColor,
-                                          constraints.maxWidth,
-                                        )
-                                      : _buildHistoryView(
-                                          cardBgColor,
-                                          textColor,
-                                          subtextColor,
-                                        ),
+                                  : (currentTab == "Dashboard" ||
+                                        currentTab == "Temperature Only" ||
+                                        currentTab == "Humidity Only")
+                                  ? _buildDashboardView(
+                                      cardBgColor,
+                                      textColor,
+                                      subtextColor,
+                                      constraints.maxWidth,
+                                    )
+                                  : _buildHistoryView(
+                                      cardBgColor,
+                                      textColor,
+                                      subtextColor,
+                                    ),
                             ),
                           ],
                         ),
@@ -1105,7 +1175,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
         color: isDarkMode ? const Color(0xFF13151A) : Colors.white,
         border: Border(
           right: BorderSide(
-            color: isDarkMode ? const Color(0xFF1E222B) : const Color(0xFFE5E7EB),
+            color: isDarkMode
+                ? const Color(0xFF1E222B)
+                : const Color(0xFFE5E7EB),
             width: 1,
           ),
         ),
@@ -1189,10 +1261,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
             child: Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: isDarkMode ? const Color(0xFF1A1C23) : const Color(0xFFF3F4F6),
+                color: isDarkMode
+                    ? const Color(0xFF1A1C23)
+                    : const Color(0xFFF3F4F6),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: isDarkMode ? const Color(0xFF222430) : const Color(0xFFE5E7EB),
+                  color: isDarkMode
+                      ? const Color(0xFF222430)
+                      : const Color(0xFFE5E7EB),
                 ),
               ),
               child: Column(
@@ -1205,7 +1281,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         height: 8,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: errorMessage.isEmpty ? Colors.green : Colors.red,
+                          color: errorMessage.isEmpty
+                              ? Colors.green
+                              : Colors.red,
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -1237,6 +1315,78 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  void _showStatusExplanationDialog(BuildContext context, String type) {
+    String title = '';
+    String explanation = '';
+    Color themeColor = Colors.blue;
+    IconData icon = Icons.info_outline;
+
+    switch (type) {
+      case 'Alarms':
+        title = 'Critical Alarms';
+        icon = Icons.warning_amber_rounded;
+        themeColor = Colors.redAccent;
+        explanation =
+            'The number represents active sensor nodes experiencing abnormal environmental conditions.\n\n'
+            '• Temperature: Outside safe boundaries (< 18.0°C or > 30.0°C)\n'
+            '• Humidity: Outside optimal limits (< 35% RH or > 70% RH)';
+        break;
+      case 'Faults':
+        title = 'Sensor Faults';
+        icon = Icons.error_outline_rounded;
+        themeColor = Colors.orangeAccent;
+        explanation =
+            'The number represents disconnected or offline hardware nodes.\n\n'
+            '• Trigger Condition: A sensor node automatically changes to a "Fault" state if it fails to transmit data to the network backend for more than 20 consecutive minutes.';
+        break;
+      case 'Normal':
+        title = 'Normal Operations';
+        icon = Icons.check_circle_outline_rounded;
+        themeColor = Colors.greenAccent;
+        explanation =
+            'The number represents healthy hardware configurations reporting within safe environmental margins.\n\n'
+            '• Criteria: The node is actively transmitting data (updated within the last 20 minutes) and all metrics lie securely within comfortable thresholds.';
+        break;
+    }
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Row(
+            children: [
+              Icon(icon, color: themeColor, size: 28),
+              const SizedBox(width: 12),
+              Text(
+                title,
+                style: TextStyle(
+                  color: themeColor,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          content: Text(
+            explanation,
+            style: const TextStyle(fontSize: 15, height: 1.4),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text(
+                'Understood',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Widget _buildSidebarItem({
     required IconData icon,
     required String title,
@@ -1244,7 +1394,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     required VoidCallback onTap,
     required Color textColor,
   }) {
-    final Color itemTextColor = isSelected ? violetThemeColor : textColor.withAlpha(160);
+    final Color itemTextColor = isSelected
+        ? violetThemeColor
+        : textColor.withAlpha(160);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -1255,7 +1407,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
           duration: const Duration(milliseconds: 150),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
-            color: isSelected ? violetThemeColor.withAlpha(20) : Colors.transparent,
+            color: isSelected
+                ? violetThemeColor.withAlpha(20)
+                : Colors.transparent,
             borderRadius: BorderRadius.circular(12),
           ),
           child: Row(
@@ -1283,7 +1437,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildFloatingBottomNavBar(Color textColor, Color subtextColor) {
     final double barHeight = 65.0;
-    final Color barBgColor = isDarkMode ? const Color(0xFF161821) : Colors.white;
+    final Color barBgColor = isDarkMode
+        ? const Color(0xFF161821)
+        : Colors.white;
     final Color activeColor = violetThemeColor;
     final Color inactiveColor = isDarkMode ? Colors.white54 : Colors.grey[500]!;
 
@@ -1303,7 +1459,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ],
             border: Border.all(
-              color: isDarkMode ? const Color(0xFF222430) : const Color(0xFFE5E7EB),
+              color: isDarkMode
+                  ? const Color(0xFF222430)
+                  : const Color(0xFFE5E7EB),
               width: 1.0,
             ),
           ),
@@ -1331,7 +1489,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           isActive: currentTab == 'Temperature Only',
                           activeColor: activeColor,
                           inactiveColor: inactiveColor,
-                          onTap: () => setState(() => currentTab = 'Temperature Only'),
+                          onTap: () =>
+                              setState(() => currentTab = 'Temperature Only'),
                         ),
                       ],
                     ),
@@ -1347,7 +1506,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           isActive: currentTab == 'Humidity Only',
                           activeColor: activeColor,
                           inactiveColor: inactiveColor,
-                          onTap: () => setState(() => currentTab = 'Humidity Only'),
+                          onTap: () =>
+                              setState(() => currentTab = 'Humidity Only'),
                         ),
                         _buildNavBarItem(
                           icon: Icons.history_toggle_off_rounded,
@@ -1355,7 +1515,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           isActive: currentTab == 'History Logs',
                           activeColor: activeColor,
                           inactiveColor: inactiveColor,
-                          onTap: () => setState(() => currentTab = 'History Logs'),
+                          onTap: () =>
+                              setState(() => currentTab = 'History Logs'),
                         ),
                       ],
                     ),
@@ -1437,11 +1598,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            icon,
-            color: isActive ? activeColor : inactiveColor,
-            size: 20,
-          ),
+          Icon(icon, color: isActive ? activeColor : inactiveColor, size: 20),
           const SizedBox(height: 4),
           Text(
             label,
@@ -1464,7 +1621,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
         color: isDarkMode ? const Color(0xFF13151A) : Colors.white,
         border: Border(
           bottom: BorderSide(
-            color: isDarkMode ? const Color(0xFF1E222B) : const Color(0xFFE5E7EB),
+            color: isDarkMode
+                ? const Color(0xFF1E222B)
+                : const Color(0xFFE5E7EB),
             width: 1,
           ),
         ),
@@ -1503,17 +1662,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
-                  color: isDarkMode ? const Color(0xFF1A1C23) : const Color(0xFFF3F4F6),
+                  color: isDarkMode
+                      ? const Color(0xFF1A1C23)
+                      : const Color(0xFFF3F4F6),
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
-                    color: isDarkMode ? const Color(0xFF222430) : const Color(0xFFE5E7EB),
+                    color: isDarkMode
+                        ? const Color(0xFF222430)
+                        : const Color(0xFFE5E7EB),
                   ),
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.access_time_rounded, size: 14, color: violetThemeColor),
+                    Icon(
+                      Icons.access_time_rounded,
+                      size: 14,
+                      color: violetThemeColor,
+                    ),
                     const SizedBox(width: 8),
                     Text(
                       _currentTimeString,
@@ -1629,10 +1799,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
         if (rawTimestamp.isNotEmpty) {
           try {
             String formattedToken = rawTimestamp;
-            if (!formattedToken.endsWith('Z') && !formattedToken.contains('+')) {
+            if (!formattedToken.endsWith('Z') &&
+                !formattedToken.contains('+')) {
               formattedToken = "${formattedToken}Z";
             }
-            final DateTime recordedTime = DateTime.parse(formattedToken).toLocal();
+            final DateTime recordedTime = DateTime.parse(
+              formattedToken,
+            ).toLocal();
             final DateTime now = DateTime.now();
             if (now.difference(recordedTime).inMinutes > 20) {
               isFault = true;
@@ -1687,9 +1860,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     var activeAlerts = _getActiveAlerts();
     if (currentTab == "Temperature Only") {
-      activeAlerts = activeAlerts.where((alert) => alert['condition'].toString().toLowerCase().contains('temp')).toList();
+      activeAlerts = activeAlerts
+          .where(
+            (alert) =>
+                alert['condition'].toString().toLowerCase().contains('temp'),
+          )
+          .toList();
     } else if (currentTab == "Humidity Only") {
-      activeAlerts = activeAlerts.where((alert) => alert['condition'].toString().toLowerCase().contains('humidity')).toList();
+      activeAlerts = activeAlerts
+          .where(
+            (alert) => alert['condition'].toString().toLowerCase().contains(
+              'humidity',
+            ),
+          )
+          .toList();
     }
 
     double maxTemp = -999.0;
@@ -1726,16 +1910,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
     addStats(r2);
     addStats(r3);
 
-    final String maxTempStr =
-        maxTemp == -999.0 ? "N/A" : "${maxTemp.toStringAsFixed(1)}°C";
-    final String minTempStr =
-        minTemp == 999.0 ? "N/A" : "${minTemp.toStringAsFixed(1)}°C";
-    final String maxHumStr =
-        maxHum == -999.0 ? "N/A" : "${maxHum.toStringAsFixed(0)}%";
-    final String minHumStr =
-        minHum == 999.0 ? "N/A" : "${minHum.toStringAsFixed(0)}%";
-    final String avgHumStr =
-        humCount == 0 ? "N/A" : "${(avgHum / humCount).toStringAsFixed(0)}%";
+    final String maxTempStr = maxTemp == -999.0
+        ? "N/A"
+        : "${maxTemp.toStringAsFixed(1)}°C";
+    final String minTempStr = minTemp == 999.0
+        ? "N/A"
+        : "${minTemp.toStringAsFixed(1)}°C";
+    final String maxHumStr = maxHum == -999.0
+        ? "N/A"
+        : "${maxHum.toStringAsFixed(0)}%";
+    final String minHumStr = minHum == 999.0
+        ? "N/A"
+        : "${minHum.toStringAsFixed(0)}%";
+    final String avgHumStr = humCount == 0
+        ? "N/A"
+        : "${(avgHum / humCount).toStringAsFixed(0)}%";
 
     final bool isMobile = screenWidth < 900;
 
@@ -1748,21 +1937,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
             child: _buildHealthStatusCard(alarmCount, faultCount, normalCount),
           ),
           const SizedBox(height: 16),
-          SizedBox(
-            height: 250,
-            child: _buildAlertLogCard(activeAlerts),
-          ),
+          SizedBox(height: 250, child: _buildAlertLogCard(activeAlerts)),
           const SizedBox(height: 16),
           SizedBox(
             height: 300,
             child: _buildCentralChartCard(
-                selectedRoom, selectedColor, temps, humidities, timestamps),
+              selectedRoom,
+              selectedColor,
+              temps,
+              humidities,
+              timestamps,
+            ),
           ),
           const SizedBox(height: 16),
-          SizedBox(
-            height: 140,
-            child: _buildChannelSelectorRow(r1, r2, r3),
-          ),
+          SizedBox(height: 140, child: _buildChannelSelectorRow(r1, r2, r3)),
           const SizedBox(height: 16),
           SizedBox(
             height: 200,
@@ -1783,10 +1971,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            flex: 1,
-            child: _buildAlertLogCard(activeAlerts),
-          ),
+          Expanded(flex: 1, child: _buildAlertLogCard(activeAlerts)),
           const SizedBox(width: 16),
           Expanded(
             flex: 2,
@@ -1794,7 +1979,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
               children: [
                 Expanded(
                   child: _buildCentralChartCard(
-                      selectedRoom, selectedColor, temps, humidities, timestamps),
+                    selectedRoom,
+                    selectedColor,
+                    temps,
+                    humidities,
+                    timestamps,
+                  ),
                 ),
                 const SizedBox(height: 16),
                 SizedBox(
@@ -1822,7 +2012,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 const SizedBox(height: 16),
                 Expanded(
                   flex: 1,
-                  child: _buildHealthStatusCard(alarmCount, faultCount, normalCount),
+                  child: _buildHealthStatusCard(
+                    alarmCount,
+                    faultCount,
+                    normalCount,
+                  ),
                 ),
               ],
             ),
@@ -1833,8 +2027,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildAlertLogCard(List<Map<String, dynamic>> alerts) {
-    final Color borderCol =
-        isDarkMode ? const Color(0xFF1E222B) : const Color(0xFFE5E7EB);
+    final Color borderCol = isDarkMode
+        ? const Color(0xFF1E222B)
+        : const Color(0xFFE5E7EB);
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -1848,8 +2043,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
         children: [
           Row(
             children: [
-              const Icon(Icons.notifications_active_rounded,
-                  color: Colors.orangeAccent, size: 20),
+              const Icon(
+                Icons.notifications_active_rounded,
+                color: Colors.orangeAccent,
+                size: 20,
+              ),
               const SizedBox(width: 10),
               Text(
                 'ACTIVE AMBIENT ALERTS',
@@ -1906,7 +2104,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     child: Theme(
                       data: Theme.of(context).copyWith(
                         scrollbarTheme: ScrollbarThemeData(
-                          thumbColor: MaterialStateProperty.all(violetThemeColor.withOpacity(0.5)),
+                          thumbColor: MaterialStateProperty.all(
+                            violetThemeColor.withOpacity(0.5),
+                          ),
                           radius: const Radius.circular(8),
                         ),
                       ),
@@ -1917,52 +2117,60 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           controller: _alertScrollController,
                           physics: const BouncingScrollPhysics(),
                           child: Padding(
-                            padding: const EdgeInsets.only(right: 12.0, bottom: 12.0),
+                            padding: const EdgeInsets.only(
+                              right: 12.0,
+                              bottom: 12.0,
+                            ),
                             child: Table(
                               columnWidths: const {
-                        0: FlexColumnWidth(1),
-                        1: FlexColumnWidth(1.5),
-                        2: FlexColumnWidth(1),
-                        3: FlexColumnWidth(1.5),
-                      },
-                      children: [
-                        TableRow(
-                          decoration: BoxDecoration(
-                            border: Border(bottom: BorderSide(color: borderCol)),
-                          ),
-                          children: [
-                            _buildTableHeader('Time'),
-                            _buildTableHeader('Source'),
-                            _buildTableHeader('Value'),
-                            _buildTableHeader('Alert'),
-                          ],
-                        ),
-                        ...alerts.map((alert) {
-                          final Color condColor =
-                              alert['condition'].toString().contains('High')
-                                  ? Colors.redAccent
-                                  : Colors.blueAccent;
-                          return TableRow(
-                            children: [
-                              _buildTableCell(alert['time'] ?? ''),
-                              _buildTableCell(alert['room'] ?? ''),
-                              _buildTableCell(alert['value'] ?? ''),
-                              Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 8.0),
-                                child: Text(
-                                  alert['condition'] ?? '',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.bold,
-                                    color: condColor,
+                                0: FlexColumnWidth(1),
+                                1: FlexColumnWidth(1.5),
+                                2: FlexColumnWidth(1),
+                                3: FlexColumnWidth(1.5),
+                              },
+                              children: [
+                                TableRow(
+                                  decoration: BoxDecoration(
+                                    border: Border(
+                                      bottom: BorderSide(color: borderCol),
+                                    ),
                                   ),
+                                  children: [
+                                    _buildTableHeader('Time'),
+                                    _buildTableHeader('Source'),
+                                    _buildTableHeader('Value'),
+                                    _buildTableHeader('Alert'),
+                                  ],
                                 ),
-                              ),
-                            ],
-                          );
-                        }),
-                      ],
+                                ...alerts.map((alert) {
+                                  final Color condColor =
+                                      alert['condition'].toString().contains(
+                                        'High',
+                                      )
+                                      ? Colors.redAccent
+                                      : Colors.blueAccent;
+                                  return TableRow(
+                                    children: [
+                                      _buildTableCell(alert['time'] ?? ''),
+                                      _buildTableCell(alert['room'] ?? ''),
+                                      _buildTableCell(alert['value'] ?? ''),
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 8.0,
+                                        ),
+                                        child: Text(
+                                          alert['condition'] ?? '',
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.bold,
+                                            color: condColor,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                }),
+                              ],
                             ),
                           ),
                         ),
@@ -2009,8 +2217,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     List<double> humidities,
     List<String> timestamps,
   ) {
-    final Color borderCol =
-        isDarkMode ? const Color(0xFF1E222B) : const Color(0xFFE5E7EB);
+    final Color borderCol = isDarkMode
+        ? const Color(0xFF1E222B)
+        : const Color(0xFFE5E7EB);
 
     final bool showTemp = currentTab != "Humidity Only";
     final bool showHumidity = currentTab != "Temperature Only";
@@ -2042,7 +2251,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(
-                    showTemp ? Icons.thermostat_rounded : Icons.water_drop_rounded,
+                    showTemp
+                        ? Icons.thermostat_rounded
+                        : Icons.water_drop_rounded,
                     color: showTemp ? sensorColor : violetThemeColor,
                     size: 20,
                   ),
@@ -2052,7 +2263,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w900,
-                      color: isDarkMode ? Colors.white : const Color(0xFF1F2937),
+                      color: isDarkMode
+                          ? Colors.white
+                          : const Color(0xFF1F2937),
                       letterSpacing: 0.5,
                     ),
                   ),
@@ -2066,7 +2279,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ],
                   if (showTemp && showHumidity) const SizedBox(width: 12),
                   if (showHumidity) ...[
-                    _buildLegendItem(label: 'Humidity (%)', color: violetThemeColor),
+                    _buildLegendItem(
+                      label: 'Humidity (%)',
+                      color: violetThemeColor,
+                    ),
                   ],
                 ],
               ),
@@ -2178,8 +2394,73 @@ class _DashboardScreenState extends State<DashboardScreen> {
         double.tryParse(reading?['temperature']?.toString() ?? '0') ?? 0.0;
     final double hum =
         double.tryParse(reading?['humidity']?.toString() ?? '0') ?? 0.0;
-    final Color borderCol =
-        isDarkMode ? const Color(0xFF1E222B) : const Color(0xFFE5E7EB);
+    final Color borderCol = isDarkMode
+        ? const Color(0xFF1E222B)
+        : const Color(0xFFE5E7EB);
+
+    // --- FIXED STATUS LOGIC ---
+    bool isFault =
+        !hasData ||
+        (temp == 0.0 && hum == 0.0); // Treat 0 readings as inactive/fault
+    bool isAlarm = false;
+
+    if (hasData && !isFault) {
+      String? tsStr = reading['created_at']?.toString();
+      if (tsStr != null) {
+        try {
+          if (!tsStr.endsWith('Z') && !tsStr.contains('+')) {
+            tsStr = '${tsStr.replaceAll(' ', 'T')}Z';
+          }
+          final DateTime rowTime = DateTime.parse(tsStr).toLocal();
+
+          // REMOVED .abs() - We only want to measure if real-time has advanced past the timestamp
+          final int varianceMinutes = DateTime.now()
+              .difference(rowTime)
+              .inMinutes;
+
+          if (varianceMinutes > 20 || varianceMinutes < -5) {
+            isFault = true;
+          }
+        } catch (_) {
+          isFault = true;
+        }
+      }
+
+      // Only check for a threshold Alarm if the node is completely healthy & online!
+      if (!isFault) {
+        if (temp < 18.0 || temp > 30.0 || hum < 35.0 || hum > 70.0) {
+          isAlarm = true;
+        }
+      }
+    }
+
+    // --- ASSIGN INDICATOR COLORS ACCORDING TO YOUR SPEC ---
+    Color dotColor;
+    if (isFault) {
+      dotColor = Colors.amber; // Yellow for Fault/Stale nodes
+    } else if (isAlarm) {
+      dotColor = Colors
+          .redAccent; // Red alert ONLY for active nodes with an active threshold alarm
+    } else {
+      dotColor = const Color(0xFF10B981); // Vibrant Green if perfectly fine
+    }
+
+    // --- PALENESS MATRIX ---
+    Color cardBackgroundColor;
+    Color currentBorderColor = isSelected
+        ? accentColor.withAlpha(200)
+        : borderCol;
+
+    if (isFault) {
+      cardBackgroundColor = isDarkMode
+          ? const Color(0xFF1A1D24).withOpacity(0.2)
+          : Colors.grey[50]!;
+      currentBorderColor = isDarkMode
+          ? const Color(0xFF1E222B)
+          : Colors.grey[200]!;
+    } else {
+      cardBackgroundColor = isDarkMode ? const Color(0xFF13151A) : Colors.white;
+    }
 
     return InkWell(
       onTap: () => setState(() => selectedChannelIndex = index),
@@ -2188,13 +2469,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
         duration: const Duration(milliseconds: 150),
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
         decoration: BoxDecoration(
-          color: isDarkMode ? const Color(0xFF13151A) : Colors.white,
+          color: cardBackgroundColor,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? accentColor.withAlpha(200) : borderCol,
-            width: isSelected ? 2.0 : 1.0,
+            color: currentBorderColor,
+            width: isSelected && !isFault ? 2.0 : 1.0,
           ),
-          boxShadow: isSelected
+          boxShadow: isSelected && !isFault
               ? [
                   BoxShadow(
                     color: accentColor.withAlpha(20),
@@ -2204,73 +2485,86 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ]
               : null,
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  channelNum,
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w900,
-                    color: accentColor,
+        child: Opacity(
+          opacity: isFault ? 0.45 : 1.0,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    channelNum,
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w900,
+                      color: isFault ? Colors.grey : accentColor,
+                    ),
                   ),
-                ),
-                Container(
-                  width: 6,
-                  height: 6,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: hasData ? Colors.green : Colors.red,
+                  Container(
+                    width: 7,
+                    height: 7,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: dotColor,
+                      boxShadow: [
+                        if (dotColor != Colors.grey)
+                          BoxShadow(
+                            color: dotColor.withOpacity(0.4),
+                            blurRadius: 6,
+                            spreadRadius: 1.5,
+                          ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 6),
-            Text(
-              roomName,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: isDarkMode ? Colors.white : const Color(0xFF1F2937),
+                ],
               ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Node: $sensorName',
-              style: TextStyle(
-                fontSize: 10,
-                color: isDarkMode ? Colors.white54 : Colors.grey,
+              const SizedBox(height: 6),
+              Text(
+                roomName,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: isDarkMode ? Colors.white : const Color(0xFF1F2937),
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
-            ),
-            const Divider(height: 12, thickness: 0.5),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  hasData ? '${temp.toStringAsFixed(1)}°C' : '--°C',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                    color: isDarkMode ? Colors.white : Colors.black87,
-                  ),
+              const SizedBox(height: 4),
+              Text(
+                'Node: $sensorName',
+                style: TextStyle(
+                  fontSize: 10,
+                  color: isDarkMode ? Colors.white54 : Colors.grey,
                 ),
-                Text(
-                  hasData ? '${hum.toStringAsFixed(0)}%' : '--%',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                    color: isDarkMode ? Colors.white70 : Colors.grey[700],
+              ),
+              const Divider(height: 12, thickness: 0.5),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    hasData && !isFault
+                        ? '${temp.toStringAsFixed(1)}°C'
+                        : '--°C',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: isDarkMode ? Colors.white : Colors.black87,
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ],
+                  Text(
+                    hasData && !isFault ? '${hum.toStringAsFixed(0)}%' : '--%',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: isDarkMode ? Colors.white70 : Colors.grey[700],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -2283,20 +2577,56 @@ class _DashboardScreenState extends State<DashboardScreen> {
     required String minH,
     required String avgH,
   }) {
-    final Color borderCol =
-        isDarkMode ? const Color(0xFF1E222B) : const Color(0xFFE5E7EB);
+    final Color borderCol = isDarkMode
+        ? const Color(0xFF1E222B)
+        : const Color(0xFFE5E7EB);
 
     final List<Widget> rows = [];
     if (currentTab != "Humidity Only") {
-      rows.add(_buildStatRow(Icons.thermostat_rounded, Colors.redAccent, 'Peak Temp Value', maxT));
-      rows.add(_buildStatRow(Icons.severe_cold_rounded, Colors.blueAccent, 'Minimum Temp Value', minT));
+      rows.add(
+        _buildStatRow(
+          Icons.thermostat_rounded,
+          Colors.redAccent,
+          'Peak Temp Value',
+          maxT,
+        ),
+      );
+      rows.add(
+        _buildStatRow(
+          Icons.severe_cold_rounded,
+          Colors.blueAccent,
+          'Minimum Temp Value',
+          minT,
+        ),
+      );
     }
     if (currentTab != "Temperature Only") {
       if (currentTab == "Humidity Only") {
-        rows.add(_buildStatRow(Icons.water_drop_rounded, violetThemeColor, 'Peak Humidity', maxH));
-        rows.add(_buildStatRow(Icons.water_drop_rounded, Colors.blue, 'Minimum Humidity', minH));
+        rows.add(
+          _buildStatRow(
+            Icons.water_drop_rounded,
+            violetThemeColor,
+            'Peak Humidity',
+            maxH,
+          ),
+        );
+        rows.add(
+          _buildStatRow(
+            Icons.water_drop_rounded,
+            Colors.blue,
+            'Minimum Humidity',
+            minH,
+          ),
+        );
       }
-      rows.add(_buildStatRow(Icons.opacity_rounded, violetThemeColor, 'Chamber Avg Humidity', avgH));
+      rows.add(
+        _buildStatRow(
+          Icons.opacity_rounded,
+          violetThemeColor,
+          'Chamber Avg Humidity',
+          avgH,
+        ),
+      );
     }
 
     return Container(
@@ -2344,7 +2674,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildStatRow(
-      IconData icon, Color iconColor, String label, String value) {
+    IconData icon,
+    Color iconColor,
+    String label,
+    String value,
+  ) {
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
@@ -2385,8 +2719,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildHealthStatusCard(int alarms, int faults, int normals) {
-    final Color borderCol =
-        isDarkMode ? const Color(0xFF1E222B) : const Color(0xFFE5E7EB);
+    final Color borderCol = isDarkMode
+        ? const Color(0xFF1E222B)
+        : const Color(0xFFE5E7EB);
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -2400,8 +2735,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
         children: [
           Row(
             children: [
-              const Icon(Icons.health_and_safety_rounded,
-                  color: Color(0xFF10B981), size: 20),
+              const Icon(
+                Icons.health_and_safety_rounded,
+                color: Color(0xFF10B981),
+                size: 20,
+              ),
               const SizedBox(width: 10),
               Text(
                 'SENSOR NODE STATUS',
@@ -2423,10 +2761,36 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      _buildHealthStatChip(Colors.redAccent, 'Alarms', alarms),
-                      _buildHealthStatChip(
-                          Colors.orangeAccent, 'Faults', faults),
-                      _buildHealthStatChip(Colors.green, 'Normal', normals),
+                      InkWell(
+                        onTap: () =>
+                            _showStatusExplanationDialog(context, 'Alarms'),
+                        borderRadius: BorderRadius.circular(8),
+                        child: _buildHealthStatChip(
+                          Colors.redAccent,
+                          'Alarms',
+                          alarms,
+                        ),
+                      ),
+                      InkWell(
+                        onTap: () =>
+                            _showStatusExplanationDialog(context, 'Faults'),
+                        borderRadius: BorderRadius.circular(8),
+                        child: _buildHealthStatChip(
+                          Colors.orangeAccent,
+                          'Faults',
+                          faults,
+                        ),
+                      ),
+                      InkWell(
+                        onTap: () =>
+                            _showStatusExplanationDialog(context, 'Normal'),
+                        borderRadius: BorderRadius.circular(8),
+                        child: _buildHealthStatChip(
+                          Colors.green,
+                          'Normal',
+                          normals,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -2811,18 +3175,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
               value.toUpperCase(),
           orElse: () => null,
         );
-          if (matchingLog != null) {
-            final String location = matchingLog['room_location'] ?? '';
-            if (location.toLowerCase() == r1RoomName.toLowerCase()) {
-              bgSelectionColor = const Color(0xFFFC3D73);
-            }
-            if (location.toLowerCase() == r2RoomName.toLowerCase()) {
-              bgSelectionColor = const Color(0xFF349DFB);
-            }
-            if (location.toLowerCase() == r3RoomName.toLowerCase()) {
-              bgSelectionColor = const Color(0xFF38C124);
-            }
+        if (matchingLog != null) {
+          final String location = matchingLog['room_location'] ?? '';
+          if (location.toLowerCase() == r1RoomName.toLowerCase()) {
+            bgSelectionColor = const Color(0xFFFC3D73);
           }
+          if (location.toLowerCase() == r2RoomName.toLowerCase()) {
+            bgSelectionColor = const Color(0xFF349DFB);
+          }
+          if (location.toLowerCase() == r3RoomName.toLowerCase()) {
+            bgSelectionColor = const Color(0xFF38C124);
+          }
+        }
       }
     } else {
       if (isHovered) {
@@ -2948,11 +3312,16 @@ class _SensorCardState extends State<SensorCard> {
   Widget build(BuildContext context) {
     final bool hasData = widget.latestReading != null;
     final double temp =
-        double.tryParse(widget.latestReading?['temperature']?.toString() ?? '0') ??
+        double.tryParse(
+          widget.latestReading?['temperature']?.toString() ?? '0',
+        ) ??
         0.0;
     final double hum =
-        double.tryParse(widget.latestReading?['humidity']?.toString() ?? '0') ?? 0.0;
-    final gradient = widget.isDarkMode ? widget.darkGradient : widget.lightGradient;
+        double.tryParse(widget.latestReading?['humidity']?.toString() ?? '0') ??
+        0.0;
+    final gradient = widget.isDarkMode
+        ? widget.darkGradient
+        : widget.lightGradient;
 
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
@@ -2972,14 +3341,18 @@ class _SensorCardState extends State<SensorCard> {
           ),
           borderRadius: BorderRadius.circular(24),
           border: Border.all(
-            color: _isHovered 
+            color: _isHovered
                 ? widget.accentColor.withAlpha(150)
-                : widget.accentColor.withAlpha(50), 
+                : widget.accentColor.withAlpha(50),
             width: _isHovered ? 2.0 : 1.5,
           ),
           boxShadow: [
             BoxShadow(
-              color: widget.accentColor.withAlpha(_isHovered ? (widget.isDarkMode ? 50 : 25) : (widget.isDarkMode ? 30 : 5)),
+              color: widget.accentColor.withAlpha(
+                _isHovered
+                    ? (widget.isDarkMode ? 50 : 25)
+                    : (widget.isDarkMode ? 30 : 5),
+              ),
               blurRadius: _isHovered ? 18 : 12,
               offset: Offset(0, _isHovered ? 8 : 6),
             ),
@@ -3043,7 +3416,9 @@ class _SensorCardState extends State<SensorCard> {
                             style: TextStyle(
                               fontSize: 42,
                               fontWeight: FontWeight.bold,
-                              color: widget.isDarkMode ? Colors.white : Colors.black87,
+                              color: widget.isDarkMode
+                                  ? Colors.white
+                                  : Colors.black87,
                               letterSpacing: -1,
                             ),
                           ),
@@ -3072,7 +3447,9 @@ class _SensorCardState extends State<SensorCard> {
                             style: TextStyle(
                               fontSize: 42,
                               fontWeight: FontWeight.bold,
-                              color: widget.isDarkMode ? Colors.white : Colors.black87,
+                              color: widget.isDarkMode
+                                  ? Colors.white
+                                  : Colors.black87,
                               letterSpacing: -1,
                             ),
                           ),
@@ -3226,11 +3603,11 @@ class SingleMetricLinePainter extends CustomPainter {
       textAlign: TextAlign.center,
     );
 
-    final Color axisColor = isDark 
-        ? Colors.white.withAlpha(20) 
+    final Color axisColor = isDark
+        ? Colors.white.withAlpha(20)
         : Colors.black.withAlpha(15);
-    final Color axisLabelColor = isDark 
-        ? Colors.white.withAlpha(170) 
+    final Color axisLabelColor = isDark
+        ? Colors.white.withAlpha(170)
         : Colors.black.withAlpha(190);
 
     final int yGridCount = 3;
@@ -3286,16 +3663,19 @@ class SingleMetricLinePainter extends CustomPainter {
       // 1. Build the smooth cubic Bezier path
       Path path = Path();
       path.moveTo(pointCoordinates[0].dx, pointCoordinates[0].dy);
-      
+
       for (int i = 0; i < pointCoordinates.length - 1; i++) {
         var p0 = pointCoordinates[i];
         var p1 = pointCoordinates[i + 1];
         var controlPoint1 = Offset(p0.dx + (p1.dx - p0.dx) / 2, p0.dy);
         var controlPoint2 = Offset(p0.dx + (p1.dx - p0.dx) / 2, p1.dy);
         path.cubicTo(
-          controlPoint1.dx, controlPoint1.dy,
-          controlPoint2.dx, controlPoint2.dy,
-          p1.dx, p1.dy,
+          controlPoint1.dx,
+          controlPoint1.dy,
+          controlPoint2.dx,
+          controlPoint2.dy,
+          p1.dx,
+          p1.dy,
         );
       }
 
@@ -3306,19 +3686,19 @@ class SingleMetricLinePainter extends CustomPainter {
       fillPath.close();
 
       final fillPaint = Paint()
-        ..shader = LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            lineColor.withAlpha(70),
-            lineColor.withAlpha(0),
-          ],
-        ).createShader(Rect.fromLTWH(
-          leftMargin,
-          topMargin,
-          drawableWidth,
-          drawableHeight,
-        ));
+        ..shader =
+            LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [lineColor.withAlpha(70), lineColor.withAlpha(0)],
+            ).createShader(
+              Rect.fromLTWH(
+                leftMargin,
+                topMargin,
+                drawableWidth,
+                drawableHeight,
+              ),
+            );
       canvas.drawPath(fillPath, fillPaint);
 
       // 3. Draw the main stroke line
@@ -3337,7 +3717,7 @@ class SingleMetricLinePainter extends CustomPainter {
 
       // 5. Draw the final point with a special glowing halo indicator (focal point)
       final lastPoint = pointCoordinates.last;
-      
+
       // Glow halo
       final glowPaint = Paint()
         ..color = lineColor.withAlpha(80)
@@ -3461,11 +3841,11 @@ class DoubleMetricLinePainter extends CustomPainter {
       textAlign: TextAlign.center,
     );
 
-    final Color axisColor = isDark 
-        ? Colors.white.withAlpha(20) 
+    final Color axisColor = isDark
+        ? Colors.white.withAlpha(20)
         : Colors.black.withAlpha(15);
-    final Color axisLabelColor = isDark 
-        ? Colors.white.withAlpha(170) 
+    final Color axisLabelColor = isDark
+        ? Colors.white.withAlpha(170)
         : Colors.black.withAlpha(190);
 
     final int yGridCount = 3;
@@ -3477,7 +3857,7 @@ class DoubleMetricLinePainter extends CustomPainter {
     for (int i = 0; i <= yGridCount; i++) {
       double pct = i / yGridCount;
       double yCoord = topMargin + drawableHeight - (pct * drawableHeight);
-      
+
       // Draw grid line
       double startX = leftMargin;
       double endX = size.width - rightMargin;
@@ -3550,7 +3930,15 @@ class DoubleMetricLinePainter extends CustomPainter {
         double y = topMargin + drawableHeight - (normalizedY * drawableHeight);
         tempCoords.add(Offset(x, y));
       }
-      _drawSmoothCurve(canvas, tempCoords, tempColor, drawableHeight, topMargin, leftMargin, drawableWidth);
+      _drawSmoothCurve(
+        canvas,
+        tempCoords,
+        tempColor,
+        drawableHeight,
+        topMargin,
+        leftMargin,
+        drawableWidth,
+      );
     }
 
     // Humidity Curve
@@ -3562,12 +3950,23 @@ class DoubleMetricLinePainter extends CustomPainter {
         double y = topMargin + drawableHeight - (normalizedY * drawableHeight);
         humCoords.add(Offset(x, y));
       }
-      _drawSmoothCurve(canvas, humCoords, humidityColor, drawableHeight, topMargin, leftMargin, drawableWidth);
+      _drawSmoothCurve(
+        canvas,
+        humCoords,
+        humidityColor,
+        drawableHeight,
+        topMargin,
+        leftMargin,
+        drawableWidth,
+      );
     }
 
     // X-axis timestamps
     if (timestamps.isNotEmpty) {
-      int xLabelInterval = (timestamps.length / 3).ceil().clamp(1, timestamps.length);
+      int xLabelInterval = (timestamps.length / 3).ceil().clamp(
+        1,
+        timestamps.length,
+      );
       double lastDrawnX = -999.0;
       for (int i = 0; i < timestamps.length; i++) {
         if (i % xLabelInterval == 0 || i == timestamps.length - 1) {
@@ -3591,7 +3990,8 @@ class DoubleMetricLinePainter extends CustomPainter {
             paintX = size.width - rightMargin - textPainter.width;
           }
 
-          if (lastDrawnX == -999.0 || paintX > lastDrawnX + textPainter.width + 12) {
+          if (lastDrawnX == -999.0 ||
+              paintX > lastDrawnX + textPainter.width + 12) {
             textPainter.paint(
               canvas,
               Offset(paintX, size.height - bottomMargin + 4),
@@ -3617,16 +4017,19 @@ class DoubleMetricLinePainter extends CustomPainter {
     // 1. Build smooth cubic Bezier path
     Path path = Path();
     path.moveTo(points[0].dx, points[0].dy);
-    
+
     for (int i = 0; i < points.length - 1; i++) {
       var p0 = points[i];
       var p1 = points[i + 1];
       var controlPoint1 = Offset(p0.dx + (p1.dx - p0.dx) / 2, p0.dy);
       var controlPoint2 = Offset(p0.dx + (p1.dx - p0.dx) / 2, p1.dy);
       path.cubicTo(
-        controlPoint1.dx, controlPoint1.dy,
-        controlPoint2.dx, controlPoint2.dy,
-        p1.dx, p1.dy,
+        controlPoint1.dx,
+        controlPoint1.dy,
+        controlPoint2.dx,
+        controlPoint2.dy,
+        p1.dx,
+        p1.dy,
       );
     }
 
@@ -3637,19 +4040,14 @@ class DoubleMetricLinePainter extends CustomPainter {
     fillPath.close();
 
     final fillPaint = Paint()
-      ..shader = LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [
-          color.withAlpha(50),
-          color.withAlpha(0),
-        ],
-      ).createShader(Rect.fromLTWH(
-        leftMargin,
-        topMargin,
-        drawableWidth,
-        drawableHeight,
-      ));
+      ..shader =
+          LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [color.withAlpha(50), color.withAlpha(0)],
+          ).createShader(
+            Rect.fromLTWH(leftMargin, topMargin, drawableWidth, drawableHeight),
+          );
     canvas.drawPath(fillPath, fillPaint);
 
     // 3. Main Line Stroke
@@ -3773,11 +4171,7 @@ class _FuturisticRadarDialState extends State<FuturisticRadarDial>
                       ),
                     ],
                   ),
-                  child: Icon(
-                    statusIcon,
-                    color: statusColor,
-                    size: 26,
-                  ),
+                  child: Icon(statusIcon, color: statusColor, size: 26),
                 ),
               ),
               Positioned(
@@ -3807,10 +4201,7 @@ class RadarSweepPainter extends CustomPainter {
   final double angle;
   final Color color;
 
-  RadarSweepPainter({
-    required this.angle,
-    required this.color,
-  });
+  RadarSweepPainter({required this.angle, required this.color});
 
   @override
   void paint(Canvas canvas, Size size) {
