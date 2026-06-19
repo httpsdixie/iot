@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:label="sensor_dashboard"
+        android:label="MADJIC Corp"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

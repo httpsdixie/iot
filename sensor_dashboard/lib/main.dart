@@ -48,6 +48,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   List<dynamic> allReadings = [];
   List<dynamic> filteredReadings = [];
   bool isLoading = true;
+  bool _isDiscovering = false;
   String errorMessage = '';
   Timer? _refreshTimer;
 
@@ -64,6 +65,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   late TextEditingController _r2Controller;
   late TextEditingController _r3Controller;
   late TextEditingController _ipController;
+  late ScrollController _alertScrollController;
 
   final Color violetThemeColor = const Color(0xFF8B5CF6);
   final Map<String, bool> _filterHoverStates = {};
@@ -75,6 +77,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     _r2Controller = TextEditingController();
     _r3Controller = TextEditingController();
     _ipController = TextEditingController();
+    _alertScrollController = ScrollController();
     _updateTime();
     _clockTimer = Timer.periodic(
       const Duration(seconds: 1),
@@ -109,6 +112,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     _r2Controller.dispose();
     _r3Controller.dispose();
     _ipController.dispose();
+    _alertScrollController.dispose();
     super.dispose();
   }
 
@@ -228,7 +232,158 @@ class _DashboardScreenState extends State<DashboardScreen> {
             'Unable to link with network backend at $serverIp.\nCheck host settings and Supabase containers.';
         isLoading = false;
       });
+      _autoDiscoverBackend();
     }
+  }
+
+  Future<void> _autoDiscoverBackend() async {
+    if (_isDiscovering) return;
+    _isDiscovering = true;
+
+    final candidates = [
+      'localhost',
+      '10.0.2.2',      // Android Emulator host loopback
+      '192.168.137.1', // Windows Hotspot
+    ];
+
+    // Filter out the current serverIp which we know just failed
+    final testIps = candidates.where((ip) => ip != serverIp).toList();
+
+    for (final ip in testIps) {
+      try {
+        final testUrl = "http://$ip:54321/rest/v1/sensor_readings?limit=1";
+        final response = await http.get(
+          Uri.parse(testUrl),
+          headers: {
+            'apikey': supabaseKey,
+            'Authorization': 'Bearer $supabaseKey',
+          },
+        ).timeout(const Duration(seconds: 2));
+
+        if (response.statusCode == 200 ||
+            response.statusCode == 401 ||
+            response.statusCode == 400 ||
+            response.statusCode == 403) {
+          // Found a responsive host!
+          if (mounted) {
+            setState(() {
+              serverIp = ip;
+              _ipController.text = ip;
+            });
+            await _saveSetting('serverIp', ip);
+            _isDiscovering = false;
+            fetchData(); // Retry with the working IP
+            return;
+          }
+        }
+      } catch (_) {
+        // Continue to next candidate
+      }
+    }
+    _isDiscovering = false;
+  }
+
+  Widget _buildSystemErrorBanner(Color textColor) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFF451A1A), // Sleek, dark red background
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.redAccent.withOpacity(0.5), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.redAccent.withOpacity(0.2),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.wifi_off_rounded,
+              color: Colors.redAccent,
+              size: 22,
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'NETWORK CONNECTION ISSUE',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 12,
+                    color: Colors.redAccent,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  errorMessage,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: isDarkMode ? Colors.white70 : Colors.black87,
+                    height: 1.4,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.redAccent,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      icon: const Icon(Icons.settings_rounded, size: 14),
+                      label: const Text(
+                        'Change Settings',
+                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                      ),
+                      onPressed: _showSettingsDialog,
+                    ),
+                    const SizedBox(width: 10),
+                    OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.redAccent,
+                        side: const BorderSide(color: Colors.redAccent),
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      icon: const Icon(Icons.refresh_rounded, size: 14),
+                      label: const Text(
+                        'Retry',
+                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                      ),
+                      onPressed: fetchData,
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   void _applyFilter() {
@@ -357,11 +512,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       child: Icon(Icons.tune_rounded, color: violetThemeColor),
                     ),
                     const SizedBox(width: 12),
-                    Text(
-                      'System Settings',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w900,
-                        color: isDarkMode ? Colors.white : Colors.black87,
+                    Expanded(
+                      child: Text(
+                        'System Settings',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w900,
+                          color: isDarkMode ? Colors.white : Colors.black87,
+                        ),
                       ),
                     ),
                   ],
@@ -549,11 +706,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
               children: [
                 Icon(Icons.info_outline_rounded, color: violetThemeColor),
                 const SizedBox(width: 10),
-                Text(
-                  'Dashboard System Manual',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: isDarkMode ? Colors.white : Colors.black87,
+                Expanded(
+                  child: Text(
+                    'Dashboard System Manual',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: isDarkMode ? Colors.white : Colors.black87,
+                    ),
                   ),
                 ),
               ],
@@ -770,64 +929,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
         return Scaffold(
           backgroundColor: bgColor,
-          drawer: isMobile
-              ? Drawer(
-                  child: Container(
-                    color: isDarkMode ? const Color(0xFF111214) : Colors.white,
-                    child: ListView(
-                      padding: EdgeInsets.zero,
-                      children: [
-                        DrawerHeader(
-                          decoration: BoxDecoration(
-                            color: violetThemeColor.withAlpha(30),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                'MADJIC Corp',
-                                style: TextStyle(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.w900,
-                                  color: textColor,
-                                ),
-                              ),
-                              Text(
-                                'Sensors Navigation',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: subtextColor,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        ListTile(
-                          leading: const Icon(Icons.dashboard_rounded),
-                          title: const Text('Dashboard'),
-                          selected: currentTab == "Dashboard",
-                          selectedColor: violetThemeColor,
-                          onTap: () {
-                            setState(() => currentTab = "Dashboard");
-                            Navigator.pop(context);
-                          },
-                        ),
-                        ListTile(
-                          leading: const Icon(Icons.history_toggle_off_rounded),
-                          title: const Text('History Logs'),
-                          selected: currentTab == "History Logs",
-                          selectedColor: violetThemeColor,
-                          onTap: () {
-                            setState(() => currentTab = "History Logs");
-                            Navigator.pop(context);
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                )
-              : null,
+          drawer: null,
           appBar: isMobile
               ? AppBar(
                   toolbarHeight: 70,
@@ -867,22 +969,31 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ),
                       ),
                       const SizedBox(width: 10),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'MADJIC TempSens',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w900,
-                              color: textColor,
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'MADJIC TempSens',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w900,
+                                color: textColor,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                          ),
-                          Text(
-                            'by MADJIC Corp',
-                            style: TextStyle(fontSize: 10, color: subtextColor),
-                          ),
-                        ],
+                            Text(
+                              'by MADJIC Corp',
+                              style: TextStyle(
+                                fontSize: 9, 
+                                color: subtextColor,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
@@ -917,26 +1028,34 @@ class _DashboardScreenState extends State<DashboardScreen> {
               : null,
           body: SafeArea(
             child: isMobile
-                ? (isLoading
-                    ? Center(
-                        child: CircularProgressIndicator(color: violetThemeColor),
-                      )
-                    : RefreshIndicator(
-                        onRefresh: fetchData,
-                        color: violetThemeColor,
-                        child: (currentTab == "Dashboard" || currentTab == "Temperature Only" || currentTab == "Humidity Only")
-                            ? _buildDashboardView(
-                                cardBgColor,
-                                textColor,
-                                subtextColor,
-                                constraints.maxWidth,
+                ? Column(
+                    children: [
+                      if (errorMessage.isNotEmpty)
+                        _buildSystemErrorBanner(textColor),
+                      Expanded(
+                        child: isLoading
+                            ? Center(
+                                child: CircularProgressIndicator(color: violetThemeColor),
                               )
-                            : _buildHistoryView(
-                                cardBgColor,
-                                textColor,
-                                subtextColor,
+                            : RefreshIndicator(
+                                onRefresh: fetchData,
+                                color: violetThemeColor,
+                                child: (currentTab == "Dashboard" || currentTab == "Temperature Only" || currentTab == "Humidity Only")
+                                    ? _buildDashboardView(
+                                        cardBgColor,
+                                        textColor,
+                                        subtextColor,
+                                        constraints.maxWidth,
+                                      )
+                                    : _buildHistoryView(
+                                        cardBgColor,
+                                        textColor,
+                                        subtextColor,
+                                      ),
                               ),
-                      ))
+                      ),
+                    ],
+                  )
                 : Row(
                     children: [
                       _buildLeftNavigationRail(textColor, subtextColor),
@@ -944,6 +1063,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         child: Column(
                           children: [
                             _buildFuturisticTopHeader(textColor, subtextColor),
+                            if (errorMessage.isNotEmpty)
+                              _buildSystemErrorBanner(textColor),
                             Expanded(
                               child: isLoading
                                   ? Center(
@@ -969,6 +1090,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ],
                   ),
           ),
+          bottomNavigationBar: isMobile
+              ? _buildFloatingBottomNavBar(textColor, subtextColor)
+              : null,
         );
       },
     );
@@ -1157,6 +1281,181 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  Widget _buildFloatingBottomNavBar(Color textColor, Color subtextColor) {
+    final double barHeight = 65.0;
+    final Color barBgColor = isDarkMode ? const Color(0xFF161821) : Colors.white;
+    final Color activeColor = violetThemeColor;
+    final Color inactiveColor = isDarkMode ? Colors.white54 : Colors.grey[500]!;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 16.0),
+      child: SafeArea(
+        child: Container(
+          height: barHeight,
+          decoration: BoxDecoration(
+            color: barBgColor,
+            borderRadius: BorderRadius.circular(24.0),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withAlpha(isDarkMode ? 80 : 30),
+                blurRadius: 16.0,
+                offset: const Offset(0, 8),
+              ),
+            ],
+            border: Border.all(
+              color: isDarkMode ? const Color(0xFF222430) : const Color(0xFFE5E7EB),
+              width: 1.0,
+            ),
+          ),
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  Expanded(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        _buildNavBarItem(
+                          icon: Icons.dashboard_rounded,
+                          label: 'Dashboard',
+                          isActive: currentTab == 'Dashboard',
+                          activeColor: activeColor,
+                          inactiveColor: inactiveColor,
+                          onTap: () => setState(() => currentTab = 'Dashboard'),
+                        ),
+                        _buildNavBarItem(
+                          icon: Icons.thermostat_rounded,
+                          label: 'Temp Only',
+                          isActive: currentTab == 'Temperature Only',
+                          activeColor: activeColor,
+                          inactiveColor: inactiveColor,
+                          onTap: () => setState(() => currentTab = 'Temperature Only'),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 70),
+                  Expanded(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        _buildNavBarItem(
+                          icon: Icons.water_drop_rounded,
+                          label: 'Humidity',
+                          isActive: currentTab == 'Humidity Only',
+                          activeColor: activeColor,
+                          inactiveColor: inactiveColor,
+                          onTap: () => setState(() => currentTab = 'Humidity Only'),
+                        ),
+                        _buildNavBarItem(
+                          icon: Icons.history_toggle_off_rounded,
+                          label: 'History',
+                          isActive: currentTab == 'History Logs',
+                          activeColor: activeColor,
+                          inactiveColor: inactiveColor,
+                          onTap: () => setState(() => currentTab = 'History Logs'),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              Positioned(
+                top: -18,
+                left: 0,
+                right: 0,
+                child: Center(
+                  child: GestureDetector(
+                    onTap: () {
+                      fetchData();
+                    },
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 54,
+                          height: 54,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: LinearGradient(
+                              colors: [
+                                violetThemeColor,
+                                violetThemeColor.withAlpha(200),
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: violetThemeColor.withAlpha(100),
+                                blurRadius: 12.0,
+                                spreadRadius: 2.0,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: const Icon(
+                            Icons.sync_rounded,
+                            color: Colors.white,
+                            size: 26,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Sync',
+                          style: TextStyle(
+                            fontSize: 9,
+                            fontWeight: FontWeight.bold,
+                            color: isDarkMode ? Colors.white70 : Colors.black87,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNavBarItem({
+    required IconData icon,
+    required String label,
+    required bool isActive,
+    required Color activeColor,
+    required Color inactiveColor,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            icon,
+            color: isActive ? activeColor : inactiveColor,
+            size: 20,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 9,
+              fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+              color: isActive ? activeColor : inactiveColor,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildFuturisticTopHeader(Color textColor, Color subtextColor) {
     return Container(
       height: 70,
@@ -1322,11 +1621,31 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final r3 = _getLatestReadingForRoom(r3RoomName);
 
     void classifySensor(Map<String, dynamic>? reading) {
+      bool isFault = false;
       if (reading == null) {
+        isFault = true;
+      } else {
+        final String rawTimestamp = reading['recorded_at']?.toString() ?? '';
+        if (rawTimestamp.isNotEmpty) {
+          try {
+            String formattedToken = rawTimestamp;
+            if (!formattedToken.endsWith('Z') && !formattedToken.contains('+')) {
+              formattedToken = "${formattedToken}Z";
+            }
+            final DateTime recordedTime = DateTime.parse(formattedToken).toLocal();
+            final DateTime now = DateTime.now();
+            if (now.difference(recordedTime).inMinutes > 20) {
+              isFault = true;
+            }
+          } catch (_) {}
+        }
+      }
+
+      if (isFault) {
         faultCount++;
       } else {
         final double t =
-            double.tryParse(reading['temperature']?.toString() ?? '0') ?? 0.0;
+            double.tryParse(reading!['temperature']?.toString() ?? '0') ?? 0.0;
         final double h =
             double.tryParse(reading['humidity']?.toString() ?? '0') ?? 0.0;
         if (t >= 30.0 || t < 18.0 || h >= 70.0 || h < 35.0) {
@@ -1424,7 +1743,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
       return ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          _buildHealthStatusCard(alarmCount, faultCount, normalCount),
+          SizedBox(
+            height: 200,
+            child: _buildHealthStatusCard(alarmCount, faultCount, normalCount),
+          ),
           const SizedBox(height: 16),
           SizedBox(
             height: 250,
@@ -1590,7 +1912,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                       child: Scrollbar(
                         thumbVisibility: true,
+                        controller: _alertScrollController,
                         child: SingleChildScrollView(
+                          controller: _alertScrollController,
                           physics: const BouncingScrollPhysics(),
                           child: Padding(
                             padding: const EdgeInsets.only(right: 12.0, bottom: 12.0),
@@ -1708,10 +2032,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Wrap(
+            spacing: 12,
+            runSpacing: 8,
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(
                     showTemp ? Icons.thermostat_rounded : Icons.water_drop_rounded,
@@ -1731,6 +2059,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ],
               ),
               Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   if (showTemp) ...[
                     _buildLegendItem(label: 'Temp (°C)', color: sensorColor),
@@ -1857,7 +2186,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       borderRadius: BorderRadius.circular(16),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
         decoration: BoxDecoration(
           color: isDarkMode ? const Color(0xFF13151A) : Colors.white,
           borderRadius: BorderRadius.circular(16),
@@ -1926,7 +2255,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Text(
                   hasData ? '${temp.toStringAsFixed(1)}°C' : '--°C',
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: 11,
                     fontWeight: FontWeight.bold,
                     color: isDarkMode ? Colors.white : Colors.black87,
                   ),
@@ -1934,7 +2263,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Text(
                   hasData ? '${hum.toStringAsFixed(0)}%' : '--%',
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: 11,
                     fontWeight: FontWeight.bold,
                     color: isDarkMode ? Colors.white70 : Colors.grey[700],
                   ),
@@ -3239,6 +3568,7 @@ class DoubleMetricLinePainter extends CustomPainter {
     // X-axis timestamps
     if (timestamps.isNotEmpty) {
       int xLabelInterval = (timestamps.length / 3).ceil().clamp(1, timestamps.length);
+      double lastDrawnX = -999.0;
       for (int i = 0; i < timestamps.length; i++) {
         if (i % xLabelInterval == 0 || i == timestamps.length - 1) {
           double x = leftMargin + (i * widthInterval);
@@ -3261,10 +3591,13 @@ class DoubleMetricLinePainter extends CustomPainter {
             paintX = size.width - rightMargin - textPainter.width;
           }
 
-          textPainter.paint(
-            canvas,
-            Offset(paintX, size.height - bottomMargin + 4),
-          );
+          if (lastDrawnX == -999.0 || paintX > lastDrawnX + textPainter.width + 12) {
+            textPainter.paint(
+              canvas,
+              Offset(paintX, size.height - bottomMargin + 4),
+            );
+            lastDrawnX = paintX;
+          }
         }
       }
     }
