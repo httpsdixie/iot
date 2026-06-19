@@ -43,6 +43,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
   String r3RoomName = "Kitchen";
   bool isDarkMode = true;
 
+  // Tracks which sensor card is currently active/clicked for displaying analytics charts on Desktop
+  String selectedRoomForAnalytics = "Living Room";
+
+  // Tracks which card is vertically expanded on mobile layout (null means none are expanded)
+  String? expandedRoomForMobile;
+
   final String supabaseKey = "sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH";
 
   List<dynamic> allReadings = [];
@@ -107,6 +113,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
         _r1Controller.text = r1RoomName;
         _r2Controller.text = r2RoomName;
         _r3Controller.text = r3RoomName;
+
+        // Match default tracker selection to loaded room configurations
+        selectedRoomForAnalytics = r1RoomName;
       });
     } catch (e) {
       // safe fallback
@@ -370,6 +379,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     r1RoomName = _r1Controller.text.trim();
                     r2RoomName = _r2Controller.text.trim();
                     r3RoomName = _r3Controller.text.trim();
+                    selectedRoomForAnalytics = r1RoomName; // Sync reset
                     isLoading = true;
                   });
                   _saveSetting('r1RoomName', r1RoomName);
@@ -658,6 +668,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
     Color subtextCol,
     double currentWidth,
   ) {
+    // Detect layout mode
+    final bool isMobile = currentWidth < 900;
+
+    // Choose the active room variable based on the layout view mode
+    final String activeRoom = isMobile
+        ? (expandedRoomForMobile ?? r1RoomName)
+        : selectedRoomForAnalytics;
+
+    // Determine active layout tracking colors dynamically for selected analytic headers
+    Color selectedColor = const Color(0xFFFC3D73);
+    if (activeRoom == r2RoomName) selectedColor = const Color(0xFF349DFB);
+    if (activeRoom == r3RoomName) selectedColor = const Color(0xFF38C124);
+
     return ListView(
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.symmetric(vertical: 20),
@@ -665,104 +688,271 @@ class _DashboardScreenState extends State<DashboardScreen> {
         if (errorMessage.isNotEmpty) _buildErrorBanner(errorMessage),
         LayoutBuilder(
           builder: (context, constraints) {
-            final double cardWidth = constraints.maxWidth < 900
-                ? (constraints.maxWidth - 50) / 1.15
+            final bool isStackView = constraints.maxWidth < 900;
+            final double cardWidth = isStackView
+                ? double.infinity
                 : (constraints.maxWidth - 56) / 3;
-            final bool isScrollable = constraints.maxWidth < 900;
 
-            final cardsList = [
-              _buildPpgCard(
-                label: 'Sensor 1 • Blossom',
-                roomName: r1RoomName,
-                latestReading: _getLatestReadingForRoom(r1RoomName),
-                accentColor: const Color(0xFFFC3D73),
-                lightGradient: const [Color(0xFFFFF0F2), Color(0xFFFFDDE3)],
-                darkGradient: const [Color(0xFF251318), Color(0xFF190D10)],
-                icon: Icons.favorite_rounded,
-                width: cardWidth,
-              ),
-              _buildPpgCard(
-                label: 'Sensor 2 • Bubbles',
-                roomName: r2RoomName,
-                latestReading: _getLatestReadingForRoom(r2RoomName),
-                accentColor: const Color(0xFF349DFB),
-                lightGradient: const [Color(0xFFEBF6FF), Color(0xFFD6EBFF)],
-                darkGradient: const [Color(0xFF0F1B2B), Color(0xFF0A121E)],
-                icon: Icons.bubble_chart_rounded,
-                width: cardWidth,
-              ),
-              _buildPpgCard(
-                label: 'Sensor 3 • Buttercup',
-                roomName: r3RoomName,
-                latestReading: _getLatestReadingForRoom(r3RoomName),
-                accentColor: const Color(0xFF38C124),
-                lightGradient: const [Color(0xFFE8FFE9), Color(0xFFCEFCCE)],
-                darkGradient: const [Color(0xFF102012), Color(0xFF0A140B)],
-                icon: Icons.bolt_rounded,
-                width: cardWidth,
-              ),
-            ];
+            // Helper builder wrapper to inject dynamic inline expandable analytics charts safely inside mobile view
+            Widget buildCardWrapper({
+              required String label,
+              required String roomName,
+              required Map<String, dynamic>? latestReading,
+              required Color accentColor,
+              required List<Color> lightGradient,
+              required List<Color> darkGradient,
+              required IconData icon,
+            }) {
+              final bool isExpandedOnMobile =
+                  isStackView && expandedRoomForMobile == roomName;
 
-            return isScrollable
-                ? SizedBox(
-                    height: 240,
-                    child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      itemCount: cardsList.length,
-                      itemBuilder: (context, index) => Padding(
-                        padding: const EdgeInsets.only(right: 14),
-                        child: cardsList[index],
+              // FIX: Determine if highlighted on Mobile layout vs Desktop layout dynamically
+              final bool cardIsSelected = isStackView
+                  ? (expandedRoomForMobile == null
+                        ? roomName == r1RoomName
+                        : expandedRoomForMobile == roomName)
+                  : (selectedRoomForAnalytics == roomName);
+
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        if (isStackView) {
+                          // Mobile: Toggle the vertical extension frame
+                          if (expandedRoomForMobile == roomName) {
+                            expandedRoomForMobile = null;
+                          } else {
+                            expandedRoomForMobile = roomName;
+                          }
+                        } else {
+                          // Desktop: Retain legacy layout updates
+                          selectedRoomForAnalytics = roomName;
+                        }
+                      });
+                    },
+                    child: _buildPpgCard(
+                      label: label,
+                      roomName: roomName,
+                      latestReading: latestReading,
+                      accentColor: accentColor,
+                      lightGradient: lightGradient,
+                      darkGradient: darkGradient,
+                      icon: icon,
+                      width: cardWidth,
+                      isActive: cardIsSelected, // <-- Add this new parameter
+                    ),
+                  ),
+                  if (isStackView)
+                    AnimatedCrossFade(
+                      firstChild: const SizedBox.shrink(),
+                      secondChild: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 8,
+                          horizontal: 20,
+                        ),
+                        child: _buildSplitAnalyticsSection(
+                          roomName,
+                          accentColor,
+                          cardBg,
+                          textCol,
+                          subtextCol,
+                          constraints.maxWidth,
+                        ),
                       ),
+                      crossFadeState: isExpandedOnMobile
+                          ? CrossFadeState.showSecond
+                          : CrossFadeState.showFirst,
+                      duration: const Duration(milliseconds: 250),
                     ),
-                  )
-                : Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Row(
+                ],
+              );
+            }
+
+            // NEAT VERTICAL STACK FOR MOBILE VIEW
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: isStackView
+                  ? Column(
+                      children: [
+                        buildCardWrapper(
+                          label: 'Sensor 1 • Blossom',
+                          roomName: r1RoomName,
+                          latestReading: _getLatestReadingForRoom(r1RoomName),
+                          accentColor: const Color(0xFFFC3D73),
+                          lightGradient: const [
+                            Color(0xFFFFF0F2),
+                            Color(0xFFFFDDE3),
+                          ],
+                          darkGradient: const [
+                            Color(0xFF251318),
+                            Color(0xFF190D10),
+                          ],
+                          icon: Icons.favorite_rounded,
+                        ),
+                        const SizedBox(height: 14),
+                        buildCardWrapper(
+                          label: 'Sensor 2 • Bubbles',
+                          roomName: r2RoomName,
+                          latestReading: _getLatestReadingForRoom(r2RoomName),
+                          accentColor: const Color(0xFF349DFB),
+                          lightGradient: const [
+                            Color(0xFFEBF6FF),
+                            Color(0xFFD6EBFF),
+                          ],
+                          darkGradient: const [
+                            Color(0xFF0F1B2B),
+                            Color(0xFF0A121E),
+                          ],
+                          icon: Icons.bubble_chart_rounded,
+                        ),
+                        const SizedBox(height: 14),
+                        buildCardWrapper(
+                          label: 'Sensor 3 • Buttercup',
+                          roomName: r3RoomName,
+                          latestReading: _getLatestReadingForRoom(r3RoomName),
+                          accentColor: const Color(0xFF38C124),
+                          lightGradient: const [
+                            Color(0xFFE8FFE9),
+                            Color(0xFFCEFCCE),
+                          ],
+                          darkGradient: const [
+                            Color(0xFF102012),
+                            Color(0xFF0A140B),
+                          ],
+                          icon: Icons.bolt_rounded,
+                        ),
+                      ],
+                    )
+                  : Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: cardsList,
+                      children: [
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () => setState(
+                              () => selectedRoomForAnalytics = r1RoomName,
+                            ),
+                            child: _buildPpgCard(
+                              label: 'Sensor 1 • Blossom',
+                              roomName: r1RoomName,
+                              latestReading: _getLatestReadingForRoom(
+                                r1RoomName,
+                              ),
+                              accentColor: const Color(0xFFFC3D73),
+                              lightGradient: const [
+                                Color(0xFFFFF0F2),
+                                Color(0xFFFFDDE3),
+                              ],
+                              darkGradient: const [
+                                Color(0xFF251318),
+                                Color(0xFF190D10),
+                              ],
+                              icon: Icons.favorite_rounded,
+                              width: cardWidth,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () => setState(
+                              () => selectedRoomForAnalytics = r2RoomName,
+                            ),
+                            child: _buildPpgCard(
+                              label: 'Sensor 2 • Bubbles',
+                              roomName: r2RoomName,
+                              latestReading: _getLatestReadingForRoom(
+                                r2RoomName,
+                              ),
+                              accentColor: const Color(0xFF349DFB),
+                              lightGradient: const [
+                                Color(0xFFEBF6FF),
+                                Color(0xFFD6EBFF),
+                              ],
+                              darkGradient: const [
+                                Color(0xFF0F1B2B),
+                                Color(0xFF0A121E),
+                              ],
+                              icon: Icons.bubble_chart_rounded,
+                              width: cardWidth,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () => setState(
+                              () => selectedRoomForAnalytics = r3RoomName,
+                            ),
+                            child: _buildPpgCard(
+                              label: 'Sensor 3 • Buttercup',
+                              roomName: r3RoomName,
+                              latestReading: _getLatestReadingForRoom(
+                                r3RoomName,
+                              ),
+                              accentColor: const Color(0xFF38C124),
+                              lightGradient: const [
+                                Color(0xFFE8FFE9),
+                                Color(0xFFCEFCCE),
+                              ],
+                              darkGradient: const [
+                                Color(0xFF102012),
+                                Color(0xFF0A140B),
+                              ],
+                              icon: Icons.bolt_rounded,
+                              width: cardWidth,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  );
+            );
           },
         ),
-        const SizedBox(height: 25),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Text(
-            'TEMPERATURE & HUMIDITY ANALYTICS',
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w900,
-              color: textCol,
-              letterSpacing: 1,
+        // Renders global metric analytics section layout if running on Desktop screens ONLY
+        if (currentWidth >= 900) ...[
+          const SizedBox(height: 24),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
+              children: [
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  width: 4,
+                  height: 14,
+                  decoration: BoxDecoration(
+                    color: selectedColor,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  '${selectedRoomForAnalytics.toUpperCase()} METRICS ANALYTICS',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w900,
+                    color: textCol,
+                    letterSpacing: 1,
+                  ),
+                ),
+              ],
             ),
           ),
-        ),
-        const SizedBox(height: 10),
-        _buildSplitAnalyticsSection(
-          r1RoomName,
-          const Color(0xFFFC3D73),
-          cardBg,
-          textCol,
-          subtextCol,
-          currentWidth,
-        ),
-        _buildSplitAnalyticsSection(
-          r2RoomName,
-          const Color(0xFF349DFB),
-          cardBg,
-          textCol,
-          subtextCol,
-          currentWidth,
-        ),
-        _buildSplitAnalyticsSection(
-          r3RoomName,
-          const Color(0xFF38C124),
-          cardBg,
-          textCol,
-          subtextCol,
-          currentWidth,
-        ),
+          const SizedBox(height: 10),
+          // WRAP THIS SECTION IN THE SAME HORIZONTAL PADDING BELOW:
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: _buildSplitAnalyticsSection(
+              selectedRoomForAnalytics,
+              selectedColor,
+              cardBg,
+              textCol,
+              subtextCol,
+              currentWidth,
+            ),
+          ),
+        ],
       ],
     );
   }
@@ -816,20 +1006,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
       isPercent: true,
     );
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-      child: useVerticalLayout
-          ? Column(
-              children: [leftChart, const SizedBox(height: 12), rightChart],
-            )
-          : Row(
-              children: [
-                Expanded(child: leftChart),
-                const SizedBox(width: 16),
-                Expanded(child: rightChart),
-              ],
-            ),
-    );
+    return useVerticalLayout
+        ? Column(children: [leftChart, const SizedBox(height: 12), rightChart])
+        : Row(
+            children: [
+              Expanded(child: leftChart),
+              const SizedBox(width: 16),
+              Expanded(child: rightChart),
+            ],
+          );
   }
 
   Widget _buildIndividualChartFrame({
@@ -890,7 +1075,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
             )
           else
             SizedBox(
-              height: 145,
+              height:
+                  155, // Expanded height room to perfectly handle all label strings
               width: double.infinity,
               child: CustomPaint(
                 painter: SingleMetricLinePainter(
@@ -927,16 +1113,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
                 children: [
-                  ...getUniqueMembers().map(
-                    (member) => _buildDynamicFilterTab(member),
-                  ),
-                  const SizedBox(width: 8),
-                  Container(
-                    width: 1,
-                    height: 24,
-                    color: isDarkMode ? Colors.white24 : Colors.black12,
-                  ),
-                  const SizedBox(width: 8),
+                  // 1. "Filter Date" button moved to the leftmost position
                   ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: selectedDateFilter != null
@@ -1015,6 +1192,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       },
                     ),
                   ],
+                  const SizedBox(width: 8),
+
+                  // 2. Vertical Divider separating the calendar action from the dynamic node selection layout list
+                  Container(
+                    width: 1,
+                    height: 24,
+                    color: isDarkMode ? Colors.white24 : Colors.black12,
+                  ),
+                  const SizedBox(width: 12),
+
+                  // 3. Dynamic Node Member Filter Tabs (ALL, BLOSSOM, BUBBLES, etc.)
+                  ...getUniqueMembers().map(
+                    (member) => _buildDynamicFilterTab(member),
+                  ),
                 ],
               ),
             ),
@@ -1084,7 +1275,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       double.tryParse(log['humidity']?.toString() ?? '0') ??
                       0.0;
 
-                  // MODIFIED: Generate highly readable, completely dynamic summaries based on ambient metrics
                   String tempStatus = "at a comfortable temperature";
                   if (temp >= 30.0) {
                     tempStatus = "too hot";
@@ -1135,7 +1325,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceBetween,
                                     children: [
-                                      // CHANGED: Primary header text is now the Room Location instead of member name
                                       Text(
                                         location.toUpperCase(),
                                         style: TextStyle(
@@ -1144,9 +1333,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                           letterSpacing: 0.5,
                                         ),
                                       ),
-                                      // Secondary badge displays reporting device owner identifier
                                       Text(
-                                        "ESP32: $name",
+                                        "NODE: $name",
                                         style: TextStyle(
                                           fontSize: 10,
                                           color: labelSideColor,
@@ -1156,7 +1344,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     ],
                                   ),
                                   const SizedBox(height: 8),
-                                  // CHANGED: Displaying our completely dynamic explanation string
                                   Text(
                                     dynamicRemark,
                                     style: TextStyle(
@@ -1302,8 +1489,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     required List<Color> darkGradient,
     required IconData icon,
     required double width,
+    bool isActive = false,
   }) {
-    final bool hasData = latestReading != null;
+    final bool isOnline = latestReading != null;
     final double temp =
         double.tryParse(latestReading?['temperature']?.toString() ?? '0') ??
         0.0;
@@ -1311,9 +1499,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
         double.tryParse(latestReading?['humidity']?.toString() ?? '0') ?? 0.0;
     final gradient = isDarkMode ? darkGradient : lightGradient;
 
+    // Desktop check highlights card border matching global lower view active context
+    final bool isCurrentlySelected = selectedRoomForAnalytics == roomName;
+
     return Container(
       width: width,
-      height: 235,
+      height: 200,
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -1322,12 +1513,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: accentColor.withAlpha(50), width: 1.5),
+        border: Border.all(
+          color: isCurrentlySelected ? accentColor : accentColor.withAlpha(50),
+          width: isCurrentlySelected ? 2.5 : 1.2,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withAlpha(isDarkMode ? 40 : 5),
-            blurRadius: 12,
-            offset: const Offset(0, 6),
+            color: isCurrentlySelected
+                ? accentColor.withAlpha(isDarkMode ? 30 : 15)
+                : Colors.black.withAlpha(isDarkMode ? 40 : 5),
+            blurRadius: isCurrentlySelected ? 16 : 12,
+            offset: isCurrentlySelected
+                ? const Offset(0, 8)
+                : const Offset(0, 6),
           ),
         ],
       ),
@@ -1366,7 +1564,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ],
           ),
-          if (hasData)
+          if (latestReading != null)
             Row(
               children: [
                 Expanded(
@@ -1447,16 +1645,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 height: 6,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: hasData ? accentColor : Colors.grey,
+                  color: isOnline ? accentColor : Colors.grey,
                 ),
               ),
               const SizedBox(width: 8),
               Text(
-                hasData ? 'Online' : 'Offline',
+                isOnline ? 'Online' : 'Offline',
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
-                  color: hasData
+                  color: isOnline
                       ? (isDarkMode ? Colors.white54 : Colors.black54)
                       : Colors.grey,
                 ),
@@ -1583,9 +1781,9 @@ class SingleMetricLinePainter extends CustomPainter {
     if (values.isEmpty) return;
 
     double leftMargin = 40.0;
-    double bottomMargin = 20.0;
+    double bottomMargin = 25.0;
     double topMargin = 10.0;
-    double rightMargin = 10.0;
+    double rightMargin = 15.0;
 
     double drawableWidth = size.width - leftMargin - rightMargin;
     double drawableHeight = size.height - topMargin - bottomMargin;
@@ -1668,35 +1866,41 @@ class SingleMetricLinePainter extends CustomPainter {
       canvas.drawCircle(point, 3.5, circlePaint);
     }
 
+    // CONSISTENT X-AXIS LABELS PRINTED DIRECTLY UNDER EVERY ENTRY WITHOUT SKIPPING
+    // ADAPTIVE X-AXIS LABELS WITH INTERVAL SKIPPING TO PREVENT OVERLAPPING
     if (timestamps.isNotEmpty) {
-      int xLabelInterval = (timestamps.length / 3).ceil().clamp(
-        1,
-        timestamps.length,
-      );
-      for (int i = 0; i < timestamps.length; i++) {
-        if (i % xLabelInterval == 0 || i == timestamps.length - 1) {
-          double x = leftMargin + (i * widthInterval);
+      // Calculate a dynamic step interval based on data density
+      int step = 1;
+      if (timestamps.length > 6) {
+        step = (timestamps.length / 5)
+            .ceil(); // Target around 4-5 labels max on screen
+      }
 
-          textPainter.text = TextSpan(
-            text: timestamps[i],
-            style: TextStyle(
-              color: axisLabelColor,
-              fontSize: 9,
-              fontWeight: FontWeight.bold,
-            ),
-          );
-          textPainter.layout();
+      for (int i = 0; i < timestamps.length; i += step) {
+        double x = leftMargin + (i * widthInterval);
 
-          double paintX = x - (textPainter.width / 2);
-          if (paintX < leftMargin) paintX = leftMargin;
-          if (paintX + textPainter.width > size.width)
-            paintX = size.width - textPainter.width;
+        textPainter.text = TextSpan(
+          text: timestamps[i],
+          style: TextStyle(
+            color: axisLabelColor,
+            fontSize: 8.5,
+            fontWeight: FontWeight.bold,
+          ),
+        );
+        textPainter.layout();
 
-          textPainter.paint(
-            canvas,
-            Offset(paintX, size.height - bottomMargin + 4),
-          );
+        double paintX = x - (textPainter.width / 2);
+
+        // Prevent label clipping at edges
+        if (paintX < leftMargin) paintX = leftMargin;
+        if (paintX + textPainter.width > size.width) {
+          paintX = size.width - textPainter.width;
         }
+
+        textPainter.paint(
+          canvas,
+          Offset(paintX, size.height - textPainter.height - 2),
+        );
       }
     }
   }
