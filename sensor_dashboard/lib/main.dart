@@ -41,6 +41,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   String r1RoomName = "Living Room";
   String r2RoomName = "Bedroom";
   String r3RoomName = "Kitchen";
+  String r1MemberName = "";
+  String r2MemberName = "";
+  String r3MemberName = "";
   bool isDarkMode = true;
 
   final String supabaseKey = "sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH";
@@ -126,6 +129,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
       final r1 = await ConfigStore.load('r1RoomName') ?? 'Living Room';
       final r2 = await ConfigStore.load('r2RoomName') ?? 'Bedroom';
       final r3 = await ConfigStore.load('r3RoomName') ?? 'Kitchen';
+      final m1 = await ConfigStore.load('r1MemberName') ?? '';
+      final m2 = await ConfigStore.load('r2MemberName') ?? '';
+      final m3 = await ConfigStore.load('r3MemberName') ?? '';
       final dark = await ConfigStore.load('isDarkMode') ?? 'true';
 
       setState(() {
@@ -133,6 +139,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
         r1RoomName = r1;
         r2RoomName = r2;
         r3RoomName = r3;
+        r1MemberName = m1;
+        r2MemberName = m2;
+        r3MemberName = m3;
         isDarkMode = dark == 'true';
 
         _r1Controller.text = r1RoomName;
@@ -404,6 +413,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   void _applyFilter() {
+    _detectMembers();
     List<dynamic> processList = allReadings;
 
     if (selectedFilter != "ALL") {
@@ -482,6 +492,96 @@ class _DashboardScreenState extends State<DashboardScreen> {
       return match.reversed.toList();
     } catch (e) {
       return [];
+    }
+  }
+
+  Map<String, dynamic>? _getLatestReadingForMember(String memberName) {
+    try {
+      return allReadings.firstWhere(
+        (log) =>
+            (log['member_name'] ?? '').toString().toUpperCase() ==
+            memberName.toUpperCase(),
+        orElse: () => null,
+      );
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Map<String, dynamic>? _getLatestReadingForChannel(int channelIndex, String roomName, String memberName) {
+    if (memberName.isNotEmpty) {
+      final match = _getLatestReadingForMember(memberName);
+      if (match != null) return match;
+    }
+    return _getLatestReadingForRoom(roomName);
+  }
+
+  List<dynamic> _getChronologicalReadingsForMember(String memberName) {
+    try {
+      final match = allReadings
+          .where(
+            (log) =>
+                (log['member_name'] ?? '').toString().toUpperCase() ==
+                memberName.toUpperCase(),
+          )
+          .toList();
+      return match.reversed.toList();
+    } catch (e) {
+      return [];
+    }
+  }
+
+  List<dynamic> _getChronologicalReadingsForChannel(int channelIndex, String roomName, String memberName) {
+    if (memberName.isNotEmpty) {
+      final match = _getChronologicalReadingsForMember(memberName);
+      if (match.isNotEmpty) return match;
+    }
+    return _getChronologicalReadingsForRoom(roomName);
+  }
+
+  void _detectMembers() {
+    if (allReadings.isEmpty) return;
+
+    final log1 = allReadings.firstWhere(
+      (r) => (r['room_location'] ?? '').toString().toLowerCase() == r1RoomName.toLowerCase(),
+      orElse: () => null,
+    );
+    if (log1 != null) {
+      final newMember = (log1['member_name'] ?? '').toString().toUpperCase();
+      if (r1MemberName != newMember) {
+        setState(() {
+          r1MemberName = newMember;
+        });
+        _saveSetting('r1MemberName', r1MemberName);
+      }
+    }
+
+    final log2 = allReadings.firstWhere(
+      (r) => (r['room_location'] ?? '').toString().toLowerCase() == r2RoomName.toLowerCase(),
+      orElse: () => null,
+    );
+    if (log2 != null) {
+      final newMember = (log2['member_name'] ?? '').toString().toUpperCase();
+      if (r2MemberName != newMember) {
+        setState(() {
+          r2MemberName = newMember;
+        });
+        _saveSetting('r2MemberName', r2MemberName);
+      }
+    }
+
+    final log3 = allReadings.firstWhere(
+      (r) => (r['room_location'] ?? '').toString().toLowerCase() == r3RoomName.toLowerCase(),
+      orElse: () => null,
+    );
+    if (log3 != null) {
+      final newMember = (log3['member_name'] ?? '').toString().toUpperCase();
+      if (r3MemberName != newMember) {
+        setState(() {
+          r3MemberName = newMember;
+        });
+        _saveSetting('r3MemberName', r3MemberName);
+      }
     }
   }
 
@@ -1748,28 +1848,50 @@ class _DashboardScreenState extends State<DashboardScreen> {
           double.tryParse(reading['temperature']?.toString() ?? '0') ?? 0.0;
       final double hum =
           double.tryParse(reading['humidity']?.toString() ?? '0') ?? 0.0;
-      final String room = reading['room_location'] ?? 'Zone';
-      final String time = extractShortTime(reading['recorded_at'] ?? '');
-
-      String? condition;
-      if (temp >= 30.0) {
-        condition = "High Temp";
-      } else if (temp < 18.0) {
-        condition = "Low Temp";
-      } else if (hum >= 70.0) {
-        condition = "High Humidity";
-      } else if (hum < 35.0) {
-        condition = "Low Humidity";
+      
+      String room = reading['room_location'] ?? 'Zone';
+      final String? mName = reading['member_name']?.toString().toUpperCase();
+      if (mName != null) {
+        if (mName == r1MemberName.toUpperCase()) {
+          room = r1RoomName;
+        } else if (mName == r2MemberName.toUpperCase()) {
+          room = r2RoomName;
+        } else if (mName == r3MemberName.toUpperCase()) {
+          room = r3RoomName;
+        }
       }
 
-      if (condition != null) {
+      final String time = extractShortTime(reading['recorded_at'] ?? '');
+
+      if (temp >= 30.0) {
         alerts.add({
           'time': time,
           'room': room,
-          'value': temp >= 30.0 || temp < 18.0
-              ? "${temp.toStringAsFixed(1)}°C"
-              : "${hum.toStringAsFixed(0)}%",
-          'condition': condition,
+          'value': "${temp.toStringAsFixed(1)}°C",
+          'condition': "High Temp",
+        });
+      } else if (temp < 18.0) {
+        alerts.add({
+          'time': time,
+          'room': room,
+          'value': "${temp.toStringAsFixed(1)}°C",
+          'condition': "Low Temp",
+        });
+      }
+
+      if (hum >= 70.0) {
+        alerts.add({
+          'time': time,
+          'room': room,
+          'value': "${hum.toStringAsFixed(0)}%",
+          'condition': "High Humidity",
+        });
+      } else if (hum < 35.0) {
+        alerts.add({
+          'time': time,
+          'room': room,
+          'value': "${hum.toStringAsFixed(0)}%",
+          'condition': "Low Humidity",
         });
       }
     }
@@ -1786,9 +1908,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     int faultCount = 0;
     int normalCount = 0;
 
-    final r1 = _getLatestReadingForRoom(r1RoomName);
-    final r2 = _getLatestReadingForRoom(r2RoomName);
-    final r3 = _getLatestReadingForRoom(r3RoomName);
+    final r1 = _getLatestReadingForChannel(0, r1RoomName, r1MemberName);
+    final r2 = _getLatestReadingForChannel(1, r2RoomName, r2MemberName);
+    final r3 = _getLatestReadingForChannel(2, r3RoomName, r3MemberName);
 
     void classifySensor(Map<String, dynamic>? reading) {
       bool isFault = false;
@@ -1835,15 +1957,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     String selectedRoom = r1RoomName;
     Color selectedColor = const Color(0xFFFC3D73);
+    String selectedMember = r1MemberName;
     if (selectedChannelIndex == 1) {
       selectedRoom = r2RoomName;
       selectedColor = const Color(0xFF349DFB);
+      selectedMember = r2MemberName;
     } else if (selectedChannelIndex == 2) {
       selectedRoom = r3RoomName;
       selectedColor = const Color(0xFF38C124);
+      selectedMember = r3MemberName;
     }
 
-    final historicalData = _getChronologicalReadingsForRoom(selectedRoom);
+    final historicalData = _getChronologicalReadingsForChannel(
+      selectedChannelIndex,
+      selectedRoom,
+      selectedMember,
+    );
     final dataPoints = historicalData.length > 8
         ? historicalData.sublist(historicalData.length - 8)
         : historicalData;
@@ -2405,7 +2534,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     bool isAlarm = false;
 
     if (hasData && !isFault) {
-      String? tsStr = reading['created_at']?.toString();
+      String? tsStr = reading['recorded_at']?.toString();
       if (tsStr != null) {
         try {
           if (!tsStr.endsWith('Z') && !tsStr.contains('+')) {
@@ -2428,7 +2557,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
       // Only check for a threshold Alarm if the node is completely healthy & online!
       if (!isFault) {
-        if (temp < 18.0 || temp > 30.0 || hum < 35.0 || hum > 70.0) {
+        if (temp >= 30.0 || temp < 18.0 || hum >= 70.0 || hum < 35.0) {
           isAlarm = true;
         }
       }
@@ -3019,7 +3148,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
                   final log = paginatedLogs[index];
                   final String name = log['member_name'] ?? 'Node';
-                  final String location = log['room_location'] ?? 'Zone';
+                  String location = log['room_location'] ?? 'Zone';
+                  final String? mName = log['member_name']?.toString().toUpperCase();
+                  if (mName != null) {
+                    if (mName == r1MemberName.toUpperCase()) {
+                      location = r1RoomName;
+                    } else if (mName == r2MemberName.toUpperCase()) {
+                      location = r2RoomName;
+                    } else if (mName == r3MemberName.toUpperCase()) {
+                      location = r3RoomName;
+                    }
+                  }
                   final String rawTime = log['recorded_at'] ?? '';
                   final double temp =
                       double.tryParse(log['temperature']?.toString() ?? '0') ??
@@ -3169,22 +3308,30 @@ class _DashboardScreenState extends State<DashboardScreen> {
       if (value.toUpperCase() == "ALL") {
         bgSelectionColor = violetThemeColor;
       } else {
-        final matchingLog = allReadings.firstWhere(
-          (element) =>
-              (element['member_name'] ?? '').toString().toUpperCase() ==
-              value.toUpperCase(),
-          orElse: () => null,
-        );
-        if (matchingLog != null) {
-          final String location = matchingLog['room_location'] ?? '';
-          if (location.toLowerCase() == r1RoomName.toLowerCase()) {
-            bgSelectionColor = const Color(0xFFFC3D73);
-          }
-          if (location.toLowerCase() == r2RoomName.toLowerCase()) {
-            bgSelectionColor = const Color(0xFF349DFB);
-          }
-          if (location.toLowerCase() == r3RoomName.toLowerCase()) {
-            bgSelectionColor = const Color(0xFF38C124);
+        if (value.toUpperCase() == r1MemberName.toUpperCase()) {
+          bgSelectionColor = const Color(0xFFFC3D73);
+        } else if (value.toUpperCase() == r2MemberName.toUpperCase()) {
+          bgSelectionColor = const Color(0xFF349DFB);
+        } else if (value.toUpperCase() == r3MemberName.toUpperCase()) {
+          bgSelectionColor = const Color(0xFF38C124);
+        } else {
+          final matchingLog = allReadings.firstWhere(
+            (element) =>
+                (element['member_name'] ?? '').toString().toUpperCase() ==
+                value.toUpperCase(),
+            orElse: () => null,
+          );
+          if (matchingLog != null) {
+            final String location = matchingLog['room_location'] ?? '';
+            if (location.toLowerCase() == r1RoomName.toLowerCase()) {
+              bgSelectionColor = const Color(0xFFFC3D73);
+            }
+            if (location.toLowerCase() == r2RoomName.toLowerCase()) {
+              bgSelectionColor = const Color(0xFF349DFB);
+            }
+            if (location.toLowerCase() == r3RoomName.toLowerCase()) {
+              bgSelectionColor = const Color(0xFF38C124);
+            }
           }
         }
       }
