@@ -159,6 +159,130 @@ class _DashboardScreenState extends State<DashboardScreen> {
     await ConfigStore.save(key, value);
   }
 
+  Future<void> _fetchSystemSettings() async {
+    try {
+      final response = await http.get(
+        Uri.parse("http://$serverIp:54321/rest/v1/system_settings"),
+        headers: {
+          'apikey': supabaseKey,
+          'Authorization': 'Bearer $supabaseKey',
+        },
+      ).timeout(const Duration(seconds: 3));
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        String? r1, r2, r3, m1, m2, m3;
+        for (final row in data) {
+          final k = row['key'] as String?;
+          final v = row['value'] as String?;
+          if (k == 'r1RoomName') {
+            r1 = v;
+          } else if (k == 'r2RoomName') {
+            r2 = v;
+          } else if (k == 'r3RoomName') {
+            r3 = v;
+          } else if (k == 'r1MemberName') {
+            m1 = v;
+          } else if (k == 'r2MemberName') {
+            m2 = v;
+          } else if (k == 'r3MemberName') {
+            m3 = v;
+          }
+        }
+
+        bool changed = false;
+        if (mounted) {
+          setState(() {
+            if (r1 != null && r1RoomName != r1) {
+              r1RoomName = r1;
+              _r1Controller.text = r1;
+              changed = true;
+            }
+            if (r2 != null && r2RoomName != r2) {
+              r2RoomName = r2;
+              _r2Controller.text = r2;
+              changed = true;
+            }
+            if (r3 != null && r3RoomName != r3) {
+              r3RoomName = r3;
+              _r3Controller.text = r3;
+              changed = true;
+            }
+            if (m1 != null && r1MemberName != m1) {
+              r1MemberName = m1;
+              changed = true;
+            }
+            if (m2 != null && r2MemberName != m2) {
+              r2MemberName = m2;
+              changed = true;
+            }
+            if (m3 != null && r3MemberName != m3) {
+              r3MemberName = m3;
+              changed = true;
+            }
+          });
+        }
+
+        if (changed) {
+          if (r1 != null) await ConfigStore.save('r1RoomName', r1);
+          if (r2 != null) await ConfigStore.save('r2RoomName', r2);
+          if (r3 != null) await ConfigStore.save('r3RoomName', r3);
+          if (m1 != null) await ConfigStore.save('r1MemberName', m1);
+          if (m2 != null) await ConfigStore.save('r2MemberName', m2);
+          if (m3 != null) await ConfigStore.save('r3MemberName', m3);
+        }
+      }
+    } catch (e) {
+      // Safe fallback if network issue
+    }
+  }
+
+  Future<void> _syncSettingsToSupabase() async {
+    try {
+      final body = json.encode([
+        {'key': 'r1RoomName', 'value': r1RoomName},
+        {'key': 'r2RoomName', 'value': r2RoomName},
+        {'key': 'r3RoomName', 'value': r3RoomName},
+        {'key': 'r1MemberName', 'value': r1MemberName},
+        {'key': 'r2MemberName', 'value': r2MemberName},
+        {'key': 'r3MemberName', 'value': r3MemberName},
+      ]);
+      await http.post(
+        Uri.parse("http://$serverIp:54321/rest/v1/system_settings"),
+        headers: {
+          'apikey': supabaseKey,
+          'Authorization': 'Bearer $supabaseKey',
+          'Content-Type': 'application/json',
+          'Prefer': 'resolution=merge-duplicates',
+        },
+        body: body,
+      ).timeout(const Duration(seconds: 3));
+    } catch (e) {
+      // Safe fallback
+    }
+  }
+
+  Future<void> _syncSingleSettingToSupabase(String key, String value) async {
+    try {
+      final body = json.encode({
+        'key': key,
+        'value': value,
+      });
+      await http.post(
+        Uri.parse("http://$serverIp:54321/rest/v1/system_settings"),
+        headers: {
+          'apikey': supabaseKey,
+          'Authorization': 'Bearer $supabaseKey',
+          'Content-Type': 'application/json',
+          'Prefer': 'resolution=merge-duplicates',
+        },
+        body: body,
+      ).timeout(const Duration(seconds: 3));
+    } catch (e) {
+      // Safe fallback
+    }
+  }
+
   String convertToHumanTime(String rawTimestamp) {
     try {
       String formattedToken = rawTimestamp;
@@ -212,6 +336,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Future<void> fetchData() async {
     try {
+      await _fetchSystemSettings();
       final response = await http
           .get(
             Uri.parse(supabaseUrl),
@@ -553,6 +678,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           r1MemberName = newMember;
         });
         _saveSetting('r1MemberName', r1MemberName);
+        _syncSingleSettingToSupabase('r1MemberName', r1MemberName);
       }
     }
 
@@ -567,6 +693,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           r2MemberName = newMember;
         });
         _saveSetting('r2MemberName', r2MemberName);
+        _syncSingleSettingToSupabase('r2MemberName', r2MemberName);
       }
     }
 
@@ -581,6 +708,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           r3MemberName = newMember;
         });
         _saveSetting('r3MemberName', r3MemberName);
+        _syncSingleSettingToSupabase('r3MemberName', r3MemberName);
       }
     }
   }
@@ -808,7 +936,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       'Save & Apply',
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
-                    onPressed: () {
+                    onPressed: () async {
+                      final nav = Navigator.of(context);
                       setState(() {
                         r1RoomName = _r1Controller.text.trim();
                         r2RoomName = _r2Controller.text.trim();
@@ -816,11 +945,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         serverIp = _ipController.text.trim();
                         isLoading = true;
                       });
-                      _saveSetting('r1RoomName', r1RoomName);
-                      _saveSetting('r2RoomName', r2RoomName);
-                      _saveSetting('r3RoomName', r3RoomName);
-                      _saveSetting('serverIp', serverIp);
-                      Navigator.of(context).pop();
+                      await _saveSetting('r1RoomName', r1RoomName);
+                      await _saveSetting('r2RoomName', r2RoomName);
+                      await _saveSetting('r3RoomName', r3RoomName);
+                      await _saveSetting('serverIp', serverIp);
+                      await _syncSettingsToSupabase();
+                      nav.pop();
                       fetchData();
                     },
                   ),
