@@ -11,3 +11,15 @@ CREATE TABLE sensor_readings (
 );
 
 ALTER TABLE sensor_readings DISABLE ROW LEVEL SECURITY;
+
+-- System settings table for syncing configurations across devices
+DROP TABLE IF EXISTS system_settings;
+
+CREATE TABLE system_settings (
+  key TEXT PRIMARY KEY,
+  value TEXT NOT NULL,
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+ALTER TABLE system_settings DISABLE ROW LEVEL SECURITY;
+GRANT ALL ON system_settings TO anon, authenticated, service_role;
