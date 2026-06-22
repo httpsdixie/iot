@@ -1980,16 +1980,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
           double.tryParse(reading['humidity']?.toString() ?? '0') ?? 0.0;
       
       String room = reading['room_location'] ?? 'Zone';
-      final String? mName = reading['member_name']?.toString().toUpperCase();
-      if (mName != null) {
-        if (mName == r1MemberName.toUpperCase()) {
-          room = r1RoomName;
-        } else if (mName == r2MemberName.toUpperCase()) {
-          room = r2RoomName;
-        } else if (mName == r3MemberName.toUpperCase()) {
-          room = r3RoomName;
-        }
-      }
 
       final String time = extractShortTime(reading['recorded_at'] ?? '');
 
@@ -2382,10 +2372,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             ),
                             child: Table(
                               columnWidths: const {
-                                0: FlexColumnWidth(1),
-                                1: FlexColumnWidth(1.5),
-                                2: FlexColumnWidth(1),
-                                3: FlexColumnWidth(1.5),
+                                0: FixedColumnWidth(68),
+                                1: FlexColumnWidth(2.0),
+                                2: FixedColumnWidth(55),
+                                3: FlexColumnWidth(1.8),
                               },
                               children: [
                                 TableRow(
@@ -2414,8 +2404,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                       _buildTableCell(alert['room'] ?? ''),
                                       _buildTableCell(alert['value'] ?? ''),
                                       Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                          vertical: 8.0,
+                                        padding: const EdgeInsets.only(
+                                          top: 8.0,
+                                          bottom: 8.0,
+                                          right: 8.0,
                                         ),
                                         child: Text(
                                           alert['condition'] ?? '',
@@ -2444,7 +2436,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildTableHeader(String text) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0),
+      padding: const EdgeInsets.only(bottom: 8.0, right: 8.0),
       child: Text(
         text,
         style: TextStyle(
@@ -2458,7 +2450,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildTableCell(String text) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, right: 8.0),
       child: Text(
         text,
         style: TextStyle(
@@ -3278,17 +3270,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
                   final log = paginatedLogs[index];
                   final String name = log['member_name'] ?? 'Node';
-                  String location = log['room_location'] ?? 'Zone';
-                  final String? mName = log['member_name']?.toString().toUpperCase();
-                  if (mName != null) {
-                    if (mName == r1MemberName.toUpperCase()) {
-                      location = r1RoomName;
-                    } else if (mName == r2MemberName.toUpperCase()) {
-                      location = r2RoomName;
-                    } else if (mName == r3MemberName.toUpperCase()) {
-                      location = r3RoomName;
-                    }
-                  }
+                  final String location = log['room_location'] ?? 'Zone';
                   final String rawTime = log['recorded_at'] ?? '';
                   final double temp =
                       double.tryParse(log['temperature']?.toString() ?? '0') ??
@@ -3316,13 +3298,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       "The $location is $tempStatus with ${temp.toStringAsFixed(1)}°C and is $humidityStatus with ${hum.toStringAsFixed(0)}% humidity.";
 
                   Color labelSideColor = Colors.grey;
-                  if (location.toLowerCase() == r1RoomName.toLowerCase()) {
+                  final String mNameUpper = (log['member_name'] ?? '').toString().toUpperCase();
+                  if (mNameUpper == r1MemberName.toUpperCase()) {
                     labelSideColor = const Color(0xFFFC3D73);
-                  }
-                  if (location.toLowerCase() == r2RoomName.toLowerCase()) {
+                  } else if (mNameUpper == r2MemberName.toUpperCase()) {
                     labelSideColor = const Color(0xFF349DFB);
-                  }
-                  if (location.toLowerCase() == r3RoomName.toLowerCase()) {
+                  } else if (mNameUpper == r3MemberName.toUpperCase()) {
                     labelSideColor = const Color(0xFF38C124);
                   }
 
