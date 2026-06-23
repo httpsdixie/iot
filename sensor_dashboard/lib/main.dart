@@ -44,6 +44,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   String r1MemberName = "";
   String r2MemberName = "";
   String r3MemberName = "";
+  String r1RenameTime = "";
+  String r2RenameTime = "";
+  String r3RenameTime = "";
   bool isDarkMode = true;
 
   final String supabaseKey = "sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH";
@@ -132,6 +135,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
       final m1 = await ConfigStore.load('r1MemberName') ?? '';
       final m2 = await ConfigStore.load('r2MemberName') ?? '';
       final m3 = await ConfigStore.load('r3MemberName') ?? '';
+      final rt1 = await ConfigStore.load('r1RenameTime') ?? '';
+      final rt2 = await ConfigStore.load('r2RenameTime') ?? '';
+      final rt3 = await ConfigStore.load('r3RenameTime') ?? '';
       final dark = await ConfigStore.load('isDarkMode') ?? 'true';
 
       setState(() {
@@ -142,6 +148,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
         r1MemberName = m1;
         r2MemberName = m2;
         r3MemberName = m3;
+        r1RenameTime = rt1;
+        r2RenameTime = rt2;
+        r3RenameTime = rt3;
         isDarkMode = dark == 'true';
 
         _r1Controller.text = r1RoomName;
@@ -171,7 +180,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
-        String? r1, r2, r3, m1, m2, m3;
+        String? r1, r2, r3, m1, m2, m3, rt1, rt2, rt3;
         for (final row in data) {
           final k = row['key'] as String?;
           final v = row['value'] as String?;
@@ -187,6 +196,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
             m2 = v;
           } else if (k == 'r3MemberName') {
             m3 = v;
+          } else if (k == 'r1RenameTime') {
+            rt1 = v;
+          } else if (k == 'r2RenameTime') {
+            rt2 = v;
+          } else if (k == 'r3RenameTime') {
+            rt3 = v;
           }
         }
 
@@ -220,6 +235,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
               r3MemberName = m3;
               changed = true;
             }
+            if (rt1 != null && r1RenameTime != rt1) {
+              r1RenameTime = rt1;
+              changed = true;
+            }
+            if (rt2 != null && r2RenameTime != rt2) {
+              r2RenameTime = rt2;
+              changed = true;
+            }
+            if (rt3 != null && r3RenameTime != rt3) {
+              r3RenameTime = rt3;
+              changed = true;
+            }
           });
         }
 
@@ -230,6 +257,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
           if (m1 != null) await ConfigStore.save('r1MemberName', m1);
           if (m2 != null) await ConfigStore.save('r2MemberName', m2);
           if (m3 != null) await ConfigStore.save('r3MemberName', m3);
+          if (rt1 != null) await ConfigStore.save('r1RenameTime', rt1);
+          if (rt2 != null) await ConfigStore.save('r2RenameTime', rt2);
+          if (rt3 != null) await ConfigStore.save('r3RenameTime', rt3);
         }
       }
     } catch (e) {
@@ -246,6 +276,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
         {'key': 'r1MemberName', 'value': r1MemberName},
         {'key': 'r2MemberName', 'value': r2MemberName},
         {'key': 'r3MemberName', 'value': r3MemberName},
+        {'key': 'r1RenameTime', 'value': r1RenameTime},
+        {'key': 'r2RenameTime', 'value': r2RenameTime},
+        {'key': 'r3RenameTime', 'value': r3RenameTime},
       ]);
       await http.post(
         Uri.parse("http://$serverIp:54321/rest/v1/system_settings"),
@@ -281,6 +314,36 @@ class _DashboardScreenState extends State<DashboardScreen> {
     } catch (e) {
       // Safe fallback
     }
+  }
+
+  String _getDisplayRoom(String memberName, String originalRoom, String recordedAtStr) {
+    final String mUpper = memberName.toUpperCase();
+    if (recordedAtStr.isEmpty) return originalRoom;
+    try {
+      String formattedToken = recordedAtStr;
+      if (!formattedToken.endsWith('Z') && !formattedToken.contains('+')) {
+        formattedToken = "${formattedToken}Z";
+      }
+      final DateTime recordedTime = DateTime.parse(formattedToken).toUtc();
+      
+      if (mUpper == r1MemberName.toUpperCase() && r1RenameTime.isNotEmpty) {
+        final DateTime renameTime = DateTime.parse(r1RenameTime).toUtc();
+        if (recordedTime.isAfter(renameTime)) {
+          return r1RoomName;
+        }
+      } else if (mUpper == r2MemberName.toUpperCase() && r2RenameTime.isNotEmpty) {
+        final DateTime renameTime = DateTime.parse(r2RenameTime).toUtc();
+        if (recordedTime.isAfter(renameTime)) {
+          return r2RoomName;
+        }
+      } else if (mUpper == r3MemberName.toUpperCase() && r3RenameTime.isNotEmpty) {
+        final DateTime renameTime = DateTime.parse(r3RenameTime).toUtc();
+        if (recordedTime.isAfter(renameTime)) {
+          return r3RoomName;
+        }
+      }
+    } catch (_) {}
+    return originalRoom;
   }
 
   String convertToHumanTime(String rawTimestamp) {
@@ -938,16 +1001,42 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
                     onPressed: () async {
                       final nav = Navigator.of(context);
+                      final String newR1 = _r1Controller.text.trim();
+                      final String newR2 = _r2Controller.text.trim();
+                      final String newR3 = _r3Controller.text.trim();
+                      final String newIp = _ipController.text.trim();
+                      
+                      String newRt1 = r1RenameTime;
+                      String newRt2 = r2RenameTime;
+                      String newRt3 = r3RenameTime;
+                      
+                      if (newR1 != r1RoomName) {
+                        newRt1 = DateTime.now().toUtc().toIso8601String();
+                      }
+                      if (newR2 != r2RoomName) {
+                        newRt2 = DateTime.now().toUtc().toIso8601String();
+                      }
+                      if (newR3 != r3RoomName) {
+                        newRt3 = DateTime.now().toUtc().toIso8601String();
+                      }
+                      
                       setState(() {
-                        r1RoomName = _r1Controller.text.trim();
-                        r2RoomName = _r2Controller.text.trim();
-                        r3RoomName = _r3Controller.text.trim();
-                        serverIp = _ipController.text.trim();
+                        r1RoomName = newR1;
+                        r2RoomName = newR2;
+                        r3RoomName = newR3;
+                        r1RenameTime = newRt1;
+                        r2RenameTime = newRt2;
+                        r3RenameTime = newRt3;
+                        serverIp = newIp;
                         isLoading = true;
                       });
+                      
                       await _saveSetting('r1RoomName', r1RoomName);
                       await _saveSetting('r2RoomName', r2RoomName);
                       await _saveSetting('r3RoomName', r3RoomName);
+                      await _saveSetting('r1RenameTime', r1RenameTime);
+                      await _saveSetting('r2RenameTime', r2RenameTime);
+                      await _saveSetting('r3RenameTime', r3RenameTime);
                       await _saveSetting('serverIp', serverIp);
                       await _syncSettingsToSupabase();
                       nav.pop();
@@ -1979,7 +2068,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
       final double hum =
           double.tryParse(reading['humidity']?.toString() ?? '0') ?? 0.0;
       
-      String room = reading['room_location'] ?? 'Zone';
+      final String mName = (reading['member_name'] ?? '').toString();
+      final String origRoom = reading['room_location'] ?? 'Zone';
+      final String recAt = reading['recorded_at'] ?? '';
+      String room = _getDisplayRoom(mName, origRoom, recAt);
 
       final String time = extractShortTime(reading['recorded_at'] ?? '');
 
@@ -3272,8 +3364,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
                   final log = paginatedLogs[index];
                   final String name = log['member_name'] ?? 'Node';
-                  final String location = log['room_location'] ?? 'Zone';
                   final String rawTime = log['recorded_at'] ?? '';
+                  final String location = _getDisplayRoom(name, log['room_location'] ?? 'Zone', rawTime);
                   final double temp =
                       double.tryParse(log['temperature']?.toString() ?? '0') ??
                       0.0;
