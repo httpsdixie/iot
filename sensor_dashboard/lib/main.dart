@@ -880,19 +880,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ),
                         ),
                         _buildRoomSelector(
-                          label: 'Sensor 1 - Blossom',
+                          label: 'Sensor 1 - Perida',
                           controller: _r1Controller,
                           uniqueRooms: uniqueRooms,
                           accentColor: const Color(0xFFFC3D73),
                         ),
                         _buildRoomSelector(
-                          label: 'Sensor 2 - Bubbles',
+                          label: 'Sensor 2 - Lacbayo',
                           controller: _r2Controller,
                           uniqueRooms: uniqueRooms,
                           accentColor: const Color(0xFF349DFB),
                         ),
                         _buildRoomSelector(
-                          label: 'Sensor 3 - Buttercup',
+                          label: 'Sensor 3 - Labiste',
                           controller: _r3Controller,
                           uniqueRooms: uniqueRooms,
                           accentColor: const Color(0xFF38C124),
@@ -1015,21 +1015,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     _buildHelpSpecItem(
                       icon: Icons.spa_rounded,
                       iconColor: const Color(0xFFFC3D73),
-                      title: 'Sensor 1 - Blossom',
+                      title: 'Sensor 1 - Perida',
                       description:
                           'Responsible for monitoring $r1RoomName. Color coded pink.',
                     ),
                     _buildHelpSpecItem(
                       icon: Icons.bubble_chart_rounded,
                       iconColor: const Color(0xFF349DFB),
-                      title: 'Sensor 2 - Bubbles',
+                      title: 'Sensor 2 - Lacbayo',
                       description:
                           'Responsible for monitoring $r2RoomName. Color coded blue.',
                     ),
                     _buildHelpSpecItem(
                       icon: Icons.eco_rounded,
                       iconColor: const Color(0xFF38C124),
-                      title: 'Sensor 3 - Buttercup',
+                      title: 'Sensor 3 - Labiste',
                       description:
                           'Responsible for monitoring $r3RoomName. Color coded green.',
                     ),
@@ -2003,14 +2003,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
         alerts.add({
           'time': time,
           'room': room,
-          'value': "${hum.toStringAsFixed(0)}%",
+          'value': "${hum.toStringAsFixed(1)}%",
           'condition': "High Humidity",
         });
       } else if (hum < 35.0) {
         alerts.add({
           'time': time,
           'room': room,
-          'value': "${hum.toStringAsFixed(0)}%",
+          'value': "${hum.toStringAsFixed(1)}%",
           'condition': "Low Humidity",
         });
       }
@@ -2167,13 +2167,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
         : "${minTemp.toStringAsFixed(1)}°C";
     final String maxHumStr = maxHum == -999.0
         ? "N/A"
-        : "${maxHum.toStringAsFixed(0)}%";
+        : "${maxHum.toStringAsFixed(1)}%";
     final String minHumStr = minHum == 999.0
         ? "N/A"
-        : "${minHum.toStringAsFixed(0)}%";
+        : "${minHum.toStringAsFixed(1)}%";
     final String avgHumStr = humCount == 0
         ? "N/A"
-        : "${(avgHum / humCount).toStringAsFixed(0)}%";
+        : "${(avgHum / humCount).toStringAsFixed(1)}%";
 
     final bool isMobile = screenWidth < 900;
 
@@ -2599,7 +2599,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           child: _buildChannelButton(
             index: 0,
             channelNum: 'CH 01',
-            sensorName: 'Blossom',
+            sensorName: 'Perida',
             roomName: r1RoomName,
             reading: r1,
             accentColor: const Color(0xFFFC3D73),
@@ -2610,7 +2610,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           child: _buildChannelButton(
             index: 1,
             channelNum: 'CH 02',
-            sensorName: 'Bubbles',
+            sensorName: 'Lacbayo',
             roomName: r2RoomName,
             reading: r2,
             accentColor: const Color(0xFF349DFB),
@@ -2621,7 +2621,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           child: _buildChannelButton(
             index: 2,
             channelNum: 'CH 03',
-            sensorName: 'Buttercup',
+            sensorName: 'Labiste',
             roomName: r3RoomName,
             reading: r3,
             accentColor: const Color(0xFF38C124),
@@ -2805,7 +2805,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
                   ),
                   Text(
-                    hasData && !isFault ? '${hum.toStringAsFixed(0)}%' : '--%',
+                    hasData && !isFault ? '${hum.toStringAsFixed(1)}%' : '--%',
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
@@ -3010,7 +3010,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Expanded(
                   flex: 5,
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       InkWell(
                         onTap: () =>
@@ -3022,6 +3022,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           alarms,
                         ),
                       ),
+                      const SizedBox(height: 12),
                       InkWell(
                         onTap: () =>
                             _showStatusExplanationDialog(context, 'Faults'),
@@ -3032,6 +3033,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           faults,
                         ),
                       ),
+                      const SizedBox(height: 12),
                       InkWell(
                         onTap: () =>
                             _showStatusExplanationDialog(context, 'Normal'),
@@ -3295,7 +3297,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   }
 
                   final String dynamicRemark =
-                      "The $location is $tempStatus with ${temp.toStringAsFixed(1)}°C and is $humidityStatus with ${hum.toStringAsFixed(0)}% humidity.";
+                      "The $location is $tempStatus with ${temp.toStringAsFixed(1)}°C and is $humidityStatus with ${hum.toStringAsFixed(1)}% humidity.";
 
                   Color labelSideColor = Colors.grey;
                   final String mNameUpper = (log['member_name'] ?? '').toString().toUpperCase();
@@ -3375,7 +3377,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                           ),
                                           const SizedBox(width: 8),
                                           _buildBadge(
-                                            '${hum.toStringAsFixed(0)}%',
+                                            '${hum.toStringAsFixed(1)}%',
                                             violetThemeColor,
                                           ),
                                         ],
@@ -3701,7 +3703,7 @@ class _SensorCardState extends State<SensorCard> {
                         FittedBox(
                           fit: BoxFit.scaleDown,
                           child: Text(
-                            '${hum.toStringAsFixed(0)}%',
+                            '${hum.toStringAsFixed(1)}%',
                             style: TextStyle(
                               fontSize: 42,
                               fontWeight: FontWeight.bold,
@@ -4146,7 +4148,7 @@ class DoubleMetricLinePainter extends CustomPainter {
       } else if (showHumidity) {
         double hVal = minHBound + (pct * finalHRange);
         textPainter.text = TextSpan(
-          text: '${hVal.toStringAsFixed(0)}%',
+          text: '${hVal.toStringAsFixed(1)}%',
           style: TextStyle(
             color: humidityColor.withAlpha(isDark ? 200 : 255),
             fontSize: 9,
@@ -4161,7 +4163,7 @@ class DoubleMetricLinePainter extends CustomPainter {
       if (showHumidity && showTemp && humidities.isNotEmpty) {
         double hVal = minHBound + (pct * finalHRange);
         textPainter.text = TextSpan(
-          text: '${hVal.toStringAsFixed(0)}%',
+          text: '${hVal.toStringAsFixed(1)}%',
           style: TextStyle(
             color: humidityColor.withAlpha(isDark ? 200 : 255),
             fontSize: 9,
