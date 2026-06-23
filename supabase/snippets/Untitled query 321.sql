@@ -23,3 +23,13 @@ CREATE TABLE system_settings (
 
 ALTER TABLE system_settings DISABLE ROW LEVEL SECURITY;
 GRANT ALL ON system_settings TO anon, authenticated, service_role;
+
+-- Seed default settings keys (Optional/Reference)
+INSERT INTO system_settings (key, value) VALUES
+  ('r1RoomName', 'Living Room'),
+  ('r2RoomName', 'Bedroom'),
+  ('r3RoomName', 'Kitchen'),
+  ('r1RenameTime', ''),
+  ('r2RenameTime', ''),
+  ('r3RenameTime', '')
+ON CONFLICT (key) DO NOTHING;
